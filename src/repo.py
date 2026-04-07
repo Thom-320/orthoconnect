@@ -190,6 +190,26 @@ def tratamientos_por_paciente(cur, paciente_id: int) -> list[tuple[Any, ...]]:
     return cur.fetchall()
 
 
+def listar_tratamientos(cur) -> list[tuple[Any, ...]]:
+    cur.execute(
+        """
+        SELECT
+            t.tratamiento_id,
+            p.nombre_completo,
+            e.nombre_completo,
+            t.diagnostico,
+            t.sesiones_estimadas,
+            t.estado,
+            COALESCE(t.eficacia_porcentaje::text || '%', '—')
+        FROM tratamiento t
+        JOIN paciente p ON p.paciente_id = t.paciente_id
+        JOIN empleado e ON e.empleado_id = t.medico_empleado_id
+        ORDER BY t.tratamiento_id
+        """
+    )
+    return cur.fetchall()
+
+
 def organigrama_empleados(cur) -> list[tuple[Any, ...]]:
     """Filas para dibujar el organigrama en orden jerárquico (árbol)."""
     cur.execute(

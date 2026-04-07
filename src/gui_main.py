@@ -6,7 +6,6 @@ Ejecutar desde la raíz del proyecto: PYTHONPATH=. python -m src.gui_main
 from __future__ import annotations
 
 import sys
-import threading
 import tkinter as tk
 from tkinter import messagebox, ttk
 from datetime import datetime
@@ -41,6 +40,13 @@ ctk.set_default_color_theme("dark-blue")
 
 _APP_USER = "gui"
 _REPO     = repo_pg
+
+
+def effective_repo_for_connection(conn, repo_mod):
+    """DemoConnection debe ir siempre con repo_demo (el cursor demo no ejecuta SQL)."""
+    if isinstance(conn, repo_demo.DemoConnection):
+        return repo_demo
+    return repo_mod
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -169,6 +175,9 @@ class BasePage(ctk.CTkScrollableFrame):
         return self.app.conn
 
     def _get_repo(self):
+        # DemoConnection solo puede usar repo_demo (DemoCursor no tiene execute SQL).
+        if isinstance(self.app.conn, repo_demo.DemoConnection):
+            return repo_demo
         return self.app.repo
 
     def refresh(self):
@@ -316,16 +325,7 @@ class TratamientosPage(BasePage):
             self.tv.delete(row)
         try:
             with self.app.conn.cursor() as cur:
-                cur.execute("""
-                    SELECT t.tratamiento_id, p.nombre_completo, e.nombre_completo,
-                           t.diagnostico, t.sesiones_estimadas, t.estado,
-                           COALESCE(t.eficacia_porcentaje::text||'%','—')
-                    FROM tratamiento t
-                    JOIN paciente  p ON p.paciente_id      = t.paciente_id
-                    JOIN empleado  e ON e.empleado_id      = t.medico_empleado_id
-                    ORDER BY t.tratamiento_id
-                """)
-                for r in cur.fetchall():
+                for r in self._get_repo().listar_tratamientos(cur):
                     self.tv.insert("", "end", values=r)
         except Exception as e:
             _show_error(str(e))
@@ -838,6 +838,7 @@ class Sidebar(ctk.CTkFrame):
 class App(ctk.CTk):
     def __init__(self, conn, repo_mod):
         super().__init__()
+        repo_mod = effective_repo_for_connection(conn, repo_mod)
         self.conn = conn
         self.repo = repo_mod
 

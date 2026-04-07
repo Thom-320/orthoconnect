@@ -19,6 +19,12 @@ class DemoCursor:
     def __exit__(self, exc_type, exc, tb) -> bool:
         return False
 
+    def execute(self, *_args, **_kwargs) -> None:
+        """Evita errores crípticos si algo llama SQL sobre el cursor demo."""
+        raise RuntimeError(
+            "DemoCursor no ejecuta SQL. Use solo funciones de src.repo_demo con esta conexión."
+        )
+
 
 class DemoConnection:
     def __init__(self) -> None:
@@ -350,6 +356,27 @@ def tratamientos_por_paciente(cur: DemoCursor, paciente_id: int) -> list[tuple[A
                 t["sesiones_estimadas"],
                 t["eficacia_porcentaje"],
                 n_citas,
+            )
+        )
+    return rows
+
+
+def listar_tratamientos(cur: DemoCursor) -> list[tuple[Any, ...]]:
+    rows: list[tuple[Any, ...]] = []
+    for t in sorted(cur.data.tratamientos, key=lambda x: x["tratamiento_id"]):
+        p = _get_paciente(cur, t["paciente_id"])
+        e = _get_empleado(cur, t["medico_empleado_id"])
+        eficacia = t["eficacia_porcentaje"]
+        eficacia_txt = f"{eficacia}%" if eficacia is not None else "—"
+        rows.append(
+            (
+                t["tratamiento_id"],
+                p["nombre_completo"] if p else "N/D",
+                e["nombre_completo"] if e else "N/D",
+                t["diagnostico"],
+                t["sesiones_estimadas"],
+                t["estado"],
+                eficacia_txt,
             )
         )
     return rows
