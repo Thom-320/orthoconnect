@@ -4,3 +4,12 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
+
+# No subir documentación raíz ni SQL local / backups
+README.md
+sql/*.sql
+sql/**/*.sql
+local/
+
+*.sql.bak
+*.sql~

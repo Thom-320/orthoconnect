@@ -17,6 +17,7 @@ import psycopg2
 from src.db import connect, set_application_name
 from src.db_errors import format_db_error, is_business_rule_violation
 from src import repo as repo_pg
+from src import repo_demo
 
 # ── Paleta ─────────────────────────────────────────────────────────────────────
 BG       = "#0D1117"
@@ -35,6 +36,13 @@ RED_BG   = "#1E0D0D"
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
+
+
+def effective_repo_for_connection(conn, repo_mod):
+    if isinstance(conn, repo_demo.DemoConnection):
+        return repo_demo
+    return repo_mod
+
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 def _dark_treeview_style(name: str = "Dark") -> str:
@@ -162,6 +170,8 @@ class BasePage(ctk.CTkScrollableFrame):
         return self.app.conn
 
     def _get_repo(self):
+        if isinstance(self.app.conn, repo_demo.DemoConnection):
+            return repo_demo
         return self.app.repo
 
     def refresh(self):
@@ -820,10 +830,11 @@ class Sidebar(ctk.CTkFrame):
 
 # ── App principal ──────────────────────────────────────────────────────────────
 class App(ctk.CTk):
-    def __init__(self, conn):
+    def __init__(self, conn, repo_mod):
         super().__init__()
+        repo_mod = effective_repo_for_connection(conn, repo_mod)
         self.conn = conn
-        self.repo = repo_pg
+        self.repo = repo_mod
 
         self.title("OrthoConnect v1.0")
         self.geometry("1100x700")
@@ -888,7 +899,7 @@ class LoginWindow(ctk.CTk):
         self.resizable(False, False)
         self.configure(fg_color=BG)
 
-        self.result: Optional[object] = None  # conexión psycopg2 o None si canceló
+        self.result: Optional[tuple] = None  # (conn, repo_mod)
 
         # Card
         card = ctk.CTkFrame(self, fg_color=SURF, corner_radius=14,
@@ -906,12 +917,15 @@ class LoginWindow(ctk.CTk):
         inner = ctk.CTkFrame(card, fg_color="transparent")
         inner.pack(padx=28, fill="x")
 
-        _label(inner, "PostgreSQL — aplique antes los scripts SQL del equipo de BD").pack(
-            anchor="w", pady=(0, 4)
+        _label(inner, "Modo de conexión").pack(anchor="w", pady=(0, 4))
+        self._mode = ctk.CTkSegmentedButton(
+            inner, values=["Demo (sin BD)", "PostgreSQL"],
+            fg_color=SURF2, selected_color=AMBER, selected_hover_color=AMBER_DK,
+            unselected_color=SURF2, unselected_hover_color=SURF,
+            text_color=TEXT, font=("Helvetica Neue", 11),
         )
-        _label(inner, "(véase sql/README.md en el repositorio)", size=10, color=TEXT_MU).pack(
-            anchor="w", pady=(0, 10)
-        )
+        self._mode.set("PostgreSQL")
+        self._mode.pack(fill="x", pady=(0, 14))
 
         _label(inner, "Nombre del operador").pack(anchor="w", pady=(0, 4))
         self._e_user = _entry(inner, "ej. admin", width=380)
@@ -926,13 +940,21 @@ class LoginWindow(ctk.CTk):
 
     def _login(self):
         self._err.configure(text="")
+        mode = self._mode.get()
         user = self._e_user.get().strip() or "gui"
+
+        if "Demo" in mode:
+            conn = repo_demo.DemoConnection()
+            conn.data.app_user = user
+            self.result = (conn, repo_demo)
+            self.destroy()
+            return
 
         try:
             conn = connect()
             set_application_name(conn, user)
             conn.commit()
-            self.result = conn
+            self.result = (conn, repo_pg)
             self.destroy()
         except psycopg2.Error as e:
             self._err.configure(text=f"  ✗  {e}")
@@ -946,7 +968,8 @@ def main() -> None:
     if login.result is None:
         sys.exit(0)
 
-    app = App(login.result)
+    conn, repo_mod = login.result
+    app = App(conn, repo_mod)
     app.protocol("WM_DELETE_WINDOW", app.on_close)
     app.mainloop()
 
