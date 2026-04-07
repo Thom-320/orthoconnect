@@ -1,22 +1,17 @@
-"""Smoke del CLI (rich) con entrada simulada — sin abrir GUI."""
+"""Smoke del CLI: conexión PostgreSQL y salida limpia (requiere BD)."""
 from __future__ import annotations
 
 import unittest
 from unittest.mock import patch
 
+from tests.pg_util import pg_available
 
-class CliDemoSmokeTest(unittest.TestCase):
-    def test_demo_flow_exits_zero(self) -> None:
+
+@unittest.skipUnless(pg_available(), "PostgreSQL no disponible (configurar .env o omitir con ORTHCONNECT_SKIP_PG_TESTS=1)")
+class CliPgSmokeTest(unittest.TestCase):
+    def test_connect_operator_and_exit(self) -> None:
         inputs = [
-            "1",
-            "cli_e2e",
-            "3",
-            "1",
-            "5",
-            "4",
-            "2",
-            "4",
-            "5",
+            "cli_smoke",
             "5",
         ]
         inp = iter(inputs)

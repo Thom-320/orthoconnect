@@ -1,31 +1,12 @@
-"""PostgreSQL opcional: se omite si no hay conexión o variables."""
+"""Consultas reales al repositorio contra PostgreSQL."""
 from __future__ import annotations
 
-import os
 import unittest
 
-try:
-    import psycopg2
-except ImportError:
-    psycopg2 = None  # type: ignore
+from tests.pg_util import pg_available
 
 
-def _pg_available() -> bool:
-    if psycopg2 is None:
-        return False
-    if os.environ.get("ORTHCONNECT_SKIP_PG_TESTS", "").lower() in ("1", "true", "yes"):
-        return False
-    try:
-        from src.db import connect
-
-        conn = connect()
-        conn.close()
-        return True
-    except Exception:
-        return False
-
-
-@unittest.skipUnless(_pg_available(), "PostgreSQL no disponible (omitir o configurar .env)")
+@unittest.skipUnless(pg_available(), "PostgreSQL no disponible (configurar .env o ORTHCONNECT_SKIP_PG_TESTS=1)")
 class PostgresRepoSmokeTest(unittest.TestCase):
     def test_listar_y_vistas(self) -> None:
         from src.db import connect

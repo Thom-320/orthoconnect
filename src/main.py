@@ -21,8 +21,7 @@ from rich.theme import Theme
 
 from src.db import connect, set_application_name
 from src.db_errors import format_db_error, is_business_rule_violation
-from src import repo as repo_pg
-from src import repo_demo
+from src import repo
 
 # ── Tema ──────────────────────────────────────────────────────────────────────
 _THEME = Theme({
@@ -44,7 +43,6 @@ _THEME = Theme({
 })
 
 con = Console(theme=_THEME, highlight=False)
-repo = repo_pg
 
 
 # ── Helpers visuales ───────────────────────────────────────────────────────────
@@ -592,19 +590,13 @@ def main_menu(conn) -> None:
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 def main() -> int:
-    global repo
-
     con.print()
     con.rule("[amber bold]  ORTHOCONNECT v1.0  [/amber bold]", style="amber.dim")
     con.print()
-    con.print("  [muted]1.[/muted] Demo  [muted](sin PostgreSQL — datos en memoria)[/muted]")
-    con.print("  [muted]2.[/muted] PostgreSQL  [muted](psycopg2 — base de datos real)[/muted]")
+    con.print("  [muted]Conexión:[/muted] PostgreSQL  [muted](psycopg2)[/muted]")
+    con.print("  [muted]Aplique antes los scripts SQL del equipo de base de datos[/muted]")
+    con.print("  [muted](véase sql/README.md).[/muted]")
     con.print()
-
-    mode = ask_int("Modo de ejecución", min_v=1, max_v=2)
-    if mode is None:
-        con.print("  [err]Modo inválido.[/err]")
-        return 1
 
     app_user = (
         con.input("  [muted]›[/muted] [label]Operador[/label] [muted](nombre para auditoría)[/muted]: ")
@@ -612,15 +604,6 @@ def main() -> int:
         or "cli"
     )
 
-    if mode == 1:
-        repo = repo_demo
-        conn_obj = repo_demo.DemoConnection()
-        conn_obj.data.app_user = app_user
-        main_menu(conn_obj)
-        conn_obj.close()
-        return 0
-
-    repo = repo_pg
     con.print()
     con.print("  [muted]Conectando a PostgreSQL…[/muted]")
     try:
