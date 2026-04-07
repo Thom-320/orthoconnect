@@ -5,8 +5,7 @@ __pycache__/
 venv/
 *.egg-info/
 
-# No subir documentación raíz ni SQL local / backups
-README.md
+# SQL local / backups (no subir esquemas al remoto)
 sql/*.sql
 sql/**/*.sql
 local/
