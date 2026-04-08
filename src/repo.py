@@ -6,21 +6,19 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Optional
 
-import psycopg2
-
 
 def listar_pacientes(cur) -> list[tuple[Any, ...]]:
     cur.execute(
         """
         SELECT
-            p.paciente_id,
-            p.nombre_completo,
+            p.id,
+            p.nombre,
             p.fecha_nacimiento,
             p.contacto,
-            COALESCE(r.nombre_completo, 'Directo') AS referido_por
-        FROM paciente p
-        LEFT JOIN paciente r ON p.referido_por_paciente_id = r.paciente_id
-        ORDER BY p.paciente_id
+            COALESCE(r.nombre, 'Directo') AS referido_por
+        FROM pacientes p
+        LEFT JOIN pacientes r ON p.referido_por = r.id
+        ORDER BY p.id
         """
     )
     return cur.fetchall()
@@ -35,23 +33,22 @@ def insertar_paciente(
 ) -> int:
     cur.execute(
         """
-        INSERT INTO paciente (nombre_completo, fecha_nacimiento, contacto, referido_por_paciente_id)
+        INSERT INTO pacientes (nombre, fecha_nacimiento, contacto, referido_por)
         VALUES (%s, %s::date, %s, %s)
-        RETURNING paciente_id
+        RETURNING id
         """,
         (nombre, fecha_nacimiento, contacto, referido_por_id),
     )
-    row = cur.fetchone()
-    return int(row[0])
+    return int(cur.fetchone()[0])
 
 
 def listar_medicos_tratantes(cur) -> list[tuple[Any, ...]]:
     cur.execute(
         """
-        SELECT empleado_id, nombre_completo, especialidad, rol
-        FROM empleado
-        WHERE rol IN ('MEDICO_SENIOR', 'MEDICO_JUNIOR')
-        ORDER BY empleado_id
+        SELECT id, nombre, rol AS especialidad, rol
+        FROM personal
+        WHERE rol IN ('Medico Senior', 'Medico Junior')
+        ORDER BY id
         """
     )
     return cur.fetchall()
@@ -66,9 +63,9 @@ def insertar_tratamiento(
 ) -> int:
     cur.execute(
         """
-        INSERT INTO tratamiento (paciente_id, medico_empleado_id, diagnostico, sesiones_estimadas, estado)
+        INSERT INTO tratamientos (paciente_id, medico_id, diagnostico, sesiones_estimadas, estado)
         VALUES (%s, %s, %s, %s, 'ACTIVO')
-        RETURNING tratamiento_id
+        RETURNING id
         """,
         (paciente_id, medico_empleado_id, diagnostico, sesiones_estimadas),
     )
@@ -85,17 +82,17 @@ def insertar_cita(
 ) -> int:
     cur.execute(
         """
-        INSERT INTO cita (
+        INSERT INTO citas (
             tratamiento_id,
             fecha_hora,
             tipo_atencion,
             monto,
             pagado,
-            estado_asistencia,
-            profesional_empleado_id
+            asistida,
+            personal_id
         )
-        VALUES (%s, %s, %s, %s, FALSE, 'PROGRAMADA', %s)
-        RETURNING cita_id
+        VALUES (%s, %s, %s, %s, FALSE, FALSE, %s)
+        RETURNING id
         """,
         (tratamiento_id, fecha_hora, tipo_atencion, monto, profesional_empleado_id),
     )
@@ -103,17 +100,17 @@ def insertar_cita(
 
 
 def aplicar_pago(cur, tratamiento_id: int) -> Optional[tuple[Any, ...]]:
-    cur.execute("SELECT * FROM fn_aplicar_pago(%s)", (tratamiento_id,))
+    cur.execute("SELECT * FROM aplicar_pago(%s)", (tratamiento_id,))
     return cur.fetchone()
 
 
 def actualizar_evolucion(cur, cita_id: int, nota: str) -> int:
     cur.execute(
         """
-        UPDATE cita
+        UPDATE citas
         SET nota_evolucion = %s,
-            estado_asistencia = 'ASISTIDA'
-        WHERE cita_id = %s
+            asistida = TRUE
+        WHERE id = %s
         """,
         (nota, cita_id),
     )
@@ -123,8 +120,10 @@ def actualizar_evolucion(cur, cita_id: int, nota: str) -> int:
 def finalizar_tratamiento(cur, tratamiento_id: int) -> tuple[Any, ...]:
     cur.execute(
         """
-        UPDATE tratamiento SET estado = 'FINALIZADO' WHERE tratamiento_id = %s
-        RETURNING tratamiento_id, estado, eficacia_porcentaje, sesiones_estimadas
+        UPDATE tratamientos
+        SET estado = 'FINALIZADO'
+        WHERE id = %s
+        RETURNING id, estado, eficacia_porcentaje, sesiones_estimadas
         """,
         (tratamiento_id,),
     )
@@ -138,15 +137,16 @@ def deudas_paciente(cur, paciente_id: int) -> list[tuple[Any, ...]]:
     cur.execute(
         """
         SELECT
-            c.cita_id,
+            c.id,
             c.fecha_hora,
             c.tipo_atencion,
             c.monto,
-            t.tratamiento_id,
+            t.id,
             t.diagnostico
-        FROM cita c
-        INNER JOIN tratamiento t ON c.tratamiento_id = t.tratamiento_id
-        WHERE t.paciente_id = %s AND c.pagado = FALSE
+        FROM citas c
+        JOIN tratamientos t ON c.tratamiento_id = t.id
+        WHERE t.paciente_id = %s
+          AND c.pagado = FALSE
         ORDER BY c.fecha_hora
         """,
         (paciente_id,),
@@ -158,23 +158,23 @@ def historial_clinico(cur, paciente_id: int) -> list[tuple[Any, ...]]:
     cur.execute(
         """
         SELECT
-            t.tratamiento_id,
+            t.id,
             t.estado,
             t.diagnostico,
-            e.nombre_completo AS medico,
+            p2.nombre AS medico,
             t.sesiones_estimadas,
             t.eficacia_porcentaje,
-            c.cita_id,
+            c.id,
             c.fecha_hora,
             c.tipo_atencion,
             c.pagado,
-            c.estado_asistencia,
+            CASE WHEN c.asistida THEN 'ASISTIDA' ELSE 'PROGRAMADA' END AS estado_asistencia,
             c.nota_evolucion
-        FROM tratamiento t
-        INNER JOIN empleado e ON t.medico_empleado_id = e.empleado_id
-        LEFT JOIN cita c ON c.tratamiento_id = t.tratamiento_id
+        FROM tratamientos t
+        JOIN personal p2 ON t.medico_id = p2.id
+        LEFT JOIN citas c ON c.tratamiento_id = t.id
         WHERE t.paciente_id = %s
-        ORDER BY t.tratamiento_id, c.fecha_hora NULLS LAST
+        ORDER BY t.id, c.fecha_hora NULLS LAST
         """,
         (paciente_id,),
     )
@@ -185,23 +185,20 @@ def tratamientos_por_paciente(cur, paciente_id: int) -> list[tuple[Any, ...]]:
     cur.execute(
         """
         SELECT
-            t.tratamiento_id,
+            t.id,
             t.estado,
             t.diagnostico,
-            e.nombre_completo,
+            p2.nombre,
             t.sesiones_estimadas,
             t.eficacia_porcentaje,
-            (SELECT COUNT(*) FROM cita c WHERE c.tratamiento_id = t.tratamiento_id) AS citas_totales,
-            (
-                SELECT COUNT(*)
-                FROM cita c
-                WHERE c.tratamiento_id = t.tratamiento_id
-                  AND c.estado_asistencia = 'ASISTIDA'
-            ) AS citas_asistidas
-        FROM tratamiento t
-        INNER JOIN empleado e ON t.medico_empleado_id = e.empleado_id
+            COUNT(c.id) AS citas_totales,
+            COUNT(c.id) FILTER (WHERE c.asistida IS TRUE) AS citas_asistidas
+        FROM tratamientos t
+        JOIN personal p2 ON t.medico_id = p2.id
+        LEFT JOIN citas c ON c.tratamiento_id = t.id
         WHERE t.paciente_id = %s
-        ORDER BY t.tratamiento_id
+        GROUP BY t.id, t.estado, t.diagnostico, p2.nombre, t.sesiones_estimadas, t.eficacia_porcentaje
+        ORDER BY t.id
         """,
         (paciente_id,),
     )
@@ -212,17 +209,17 @@ def listar_tratamientos(cur) -> list[tuple[Any, ...]]:
     cur.execute(
         """
         SELECT
-            t.tratamiento_id,
-            p.nombre_completo,
-            e.nombre_completo,
+            t.id,
+            p.nombre,
+            pr.nombre,
             t.diagnostico,
             t.sesiones_estimadas,
             t.estado,
             COALESCE(t.eficacia_porcentaje::text || '%', '—')
-        FROM tratamiento t
-        JOIN paciente p ON p.paciente_id = t.paciente_id
-        JOIN empleado e ON e.empleado_id = t.medico_empleado_id
-        ORDER BY t.tratamiento_id
+        FROM tratamientos t
+        JOIN pacientes p ON p.id = t.paciente_id
+        JOIN personal pr ON pr.id = t.medico_id
+        ORDER BY t.id
         """
     )
     return cur.fetchall()
@@ -232,14 +229,14 @@ def organigrama_empleados(cur) -> list[tuple[Any, ...]]:
     cur.execute(
         """
         SELECT
-            empleado_id,
-            nombre_completo,
-            especialidad,
-            supervisor_id,
+            id,
+            nombre,
+            rol AS especialidad,
+            supervisor,
             rol,
             nivel,
             ruta_orden
-        FROM v_organigrama
+        FROM arbol_mando
         ORDER BY ruta_orden
         """
     )
@@ -249,9 +246,9 @@ def organigrama_empleados(cur) -> list[tuple[Any, ...]]:
 def reporte_adherencia(cur) -> list[tuple[Any, ...]]:
     cur.execute(
         """
-        SELECT nombre_completo, promedio_dias_entre_citas, estado_adherencia
-        FROM v_reporte_adherencia
-        ORDER BY nombre_completo
+        SELECT nombre, promedio_intervalo, estado_adherencia
+        FROM reporte_adherencia
+        ORDER BY nombre
         """
     )
     return cur.fetchall()
@@ -260,9 +257,9 @@ def reporte_adherencia(cur) -> list[tuple[Any, ...]]:
 def cadena_referidos(cur) -> list[tuple[Any, ...]]:
     cur.execute(
         """
-        SELECT paciente_id, nombre_completo, nivel, cadena_texto
-        FROM v_cadena_referidos
-        ORDER BY cadena_texto
+        SELECT id, nombre, nivel, cadena
+        FROM linaje_confianza
+        ORDER BY cadena
         """
     )
     return cur.fetchall()
@@ -272,37 +269,30 @@ def reporte_eficacia(cur) -> list[tuple[Any, ...]]:
     cur.execute(
         """
         SELECT
-            t.tratamiento_id,
-            p.nombre_completo,
-            e.nombre_completo,
+            t.id,
+            p.nombre,
+            pr.nombre,
             t.diagnostico,
             t.sesiones_estimadas,
-            COUNT(c.cita_id) FILTER (WHERE c.estado_asistencia = 'ASISTIDA') AS sesiones_asistidas,
+            COUNT(c.id) FILTER (WHERE c.asistida IS TRUE) AS sesiones_asistidas,
             t.eficacia_porcentaje,
             t.estado
-        FROM tratamiento t
-        JOIN paciente p ON p.paciente_id = t.paciente_id
-        JOIN empleado e ON e.empleado_id = t.medico_empleado_id
-        LEFT JOIN cita c ON c.tratamiento_id = t.tratamiento_id
-        GROUP BY
-            t.tratamiento_id,
-            p.nombre_completo,
-            e.nombre_completo,
-            t.diagnostico,
-            t.sesiones_estimadas,
-            t.eficacia_porcentaje,
-            t.estado
-        ORDER BY t.tratamiento_id
+        FROM tratamientos t
+        JOIN pacientes p ON p.id = t.paciente_id
+        JOIN personal pr ON pr.id = t.medico_id
+        LEFT JOIN citas c ON c.tratamiento_id = t.id
+        GROUP BY t.id, p.nombre, pr.nombre, t.diagnostico, t.sesiones_estimadas, t.eficacia_porcentaje, t.estado
+        ORDER BY t.id
         """
     )
     return cur.fetchall()
 
 
 def tratamiento_existe(cur, tratamiento_id: int) -> bool:
-    cur.execute("SELECT 1 FROM tratamiento WHERE tratamiento_id = %s", (tratamiento_id,))
+    cur.execute("SELECT 1 FROM tratamientos WHERE id = %s", (tratamiento_id,))
     return cur.fetchone() is not None
 
 
 def cita_existe(cur, cita_id: int) -> bool:
-    cur.execute("SELECT 1 FROM cita WHERE cita_id = %s", (cita_id,))
+    cur.execute("SELECT 1 FROM citas WHERE id = %s", (cita_id,))
     return cur.fetchone() is not None

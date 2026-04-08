@@ -55,11 +55,11 @@ class PostgresRepoSmokeTest(unittest.TestCase):
             with self.assertRaises(psycopg2.Error) as ctx:
                 repo_pg.insertar_cita(
                     cur,
-                    1,
-                    datetime(2026, 3, 25, 10, 0),
+                    4,
+                    datetime(2026, 3, 10, 15, 0),
                     "Sesión Control",
                     Decimal("50000"),
-                    3,
+                    4,
                 )
         self.conn.rollback()
         self.assertIn("BLOQUEO", str(ctx.exception))
@@ -71,40 +71,40 @@ class PostgresRepoSmokeTest(unittest.TestCase):
             row = repo_pg.aplicar_pago(cur, 1)
             self.assertIsNotNone(row)
             pago_id, cita_id, _fecha, _tipo, monto = row
-            self.assertEqual(cita_id, 1)
-            self.assertEqual(str(monto), "80000.00")
+            self.assertEqual(cita_id, 2)
+            self.assertEqual(str(monto), "40000.00")
 
             cur.execute(
                 """
-                SELECT tratamiento_id, cita_id_saldada, usuario_registro
-                FROM pago
-                WHERE pago_id = %s
+                SELECT tratamiento_id, cita_id, usuario_registro
+                FROM pagos
+                WHERE id = %s
                 """,
                 (pago_id,),
             )
             pago = cur.fetchone()
-            self.assertEqual(pago, (1, 1, "pg_test"))
+            self.assertEqual(pago, (1, 2, "pg_test"))
 
     def test_actualizar_evolucion_audita_y_asiste(self) -> None:
         from src import repo as repo_pg
 
         with self.conn.cursor() as cur:
-            updated = repo_pg.actualizar_evolucion(cur, 3, "Paciente completa sesion sin dolor.")
+            updated = repo_pg.actualizar_evolucion(cur, 7, "Paciente completa sesion sin dolor.")
             self.assertEqual(updated, 1)
             cur.execute(
                 """
-                SELECT estado_asistencia, nota_evolucion
-                FROM cita
-                WHERE cita_id = 3
+                SELECT asistida, nota_evolucion
+                FROM citas
+                WHERE id = 7
                 """
             )
-            self.assertEqual(cur.fetchone(), ("ASISTIDA", "Paciente completa sesion sin dolor."))
+            self.assertEqual(cur.fetchone(), (True, "Paciente completa sesion sin dolor."))
             cur.execute(
                 """
                 SELECT nota_anterior, nota_nueva, usuario_editor
                 FROM auditoria_evolucion
-                WHERE cita_id = 3
-                ORDER BY auditoria_id DESC
+                WHERE cita_id = 7
+                ORDER BY id DESC
                 LIMIT 1
                 """
             )
@@ -115,10 +115,9 @@ class PostgresRepoSmokeTest(unittest.TestCase):
         from src import repo as repo_pg
 
         with self.conn.cursor() as cur:
-            repo_pg.actualizar_evolucion(cur, 3, "Paciente completa sesion sin dolor.")
             row = repo_pg.finalizar_tratamiento(cur, 1)
             self.assertEqual(row[1], "FINALIZADO")
-            self.assertEqual(str(row[2]), "333.33")
+            self.assertEqual(str(row[2]), "500.00")
 
 
 if __name__ == "__main__":
