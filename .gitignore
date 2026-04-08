@@ -8,9 +8,5 @@ venv/
 # Backups / archivos locales auxiliares
 local/
 
-# SQL local (no subir esquemas/datos si se manejan fuera del repo)
-sql/*.sql
-sql/**/*.sql
-
 *.sql.bak
 *.sql~
