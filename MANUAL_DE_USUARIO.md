@@ -1,231 +1,57 @@
 # Manual de Usuario — OrthoConnect CLI
 
-## 1. Objetivo
+## Inicio
 
-La aplicación permite manejar la base de datos de OrthoConnect desde consola. Se dejó organizada en los cuatro módulos que pide el parcial:
-
-- Administrativo
-- Médico
-- Consultas
-- Gerencial
-
-## 2. Inicio
-
-Con la base ya cargada, correr:
+Con la base cargada, ejecutar:
 
 ```bash
 PYTHONPATH=. python -m src.main
 ```
 
-Al iniciar aparecen dos modos:
+Al arrancar se pregunta el modo (Demo o PostgreSQL) y el nombre del operador. Para la sustentación usar **PostgreSQL**. El nombre del operador queda registrado en auditoría y pagos.
 
-- `1. Demo`
-- `2. PostgreSQL`
+Para obtener los mismos IDs del ejemplo del profesor, ejecutar primero `make reset-db`.
 
-Para presentar el parcial se debe usar **PostgreSQL**.
+## Menú principal
 
-Si quieren que los IDs y los resultados coincidan con el ejemplo del profesor, conviene ejecutar antes:
-
-```bash
-make reset-db
 ```
-
-Después se pide el nombre del operador. Ese nombre se usa como `application_name` y queda guardado en auditoría y pagos.
-
-## 3. Menú principal
-
-Opciones:
-
 1. Módulo Administrativo
 2. Módulo Médico
 3. Módulo de Consultas
 4. Módulo Gerencial
 5. Salir
-
-## 4. Módulo Administrativo
-
-### 4.1 Registrar Nuevo Paciente
-
-Pide:
-
-- nombre completo
-- fecha de nacimiento
-- contacto
-- si fue referido o no
-
-Si fue referido, muestra la lista de pacientes para escoger el `paciente_id` del referidor.
-
-### 4.2 Abrir Nuevo Tratamiento
-
-Pide:
-
-- paciente
-- médico tratante
-- diagnóstico
-- sesiones estimadas
-
-El tratamiento se crea en estado `ACTIVO`.
-
-### 4.3 Agendar Cita
-
-Pide:
-
-- tratamiento
-- fecha y hora
-- monto
-- tipo de atención
-- profesional
-
-La cita queda con:
-
-- `pagado = FALSE`
-- `estado_asistencia = 'PROGRAMADA'`
-
-Si el paciente ya tiene dos o más citas anteriores pendientes, PostgreSQL lanza la excepción y la aplicación la muestra sin cerrarse.
-
-### 4.4 Registrar Pago
-
-Pide:
-
-- `tratamiento_id`
-
-La aplicación usa `fn_aplicar_pago()` para:
-
-- buscar la cita pendiente más antigua
-- marcarla como pagada
-- crear el registro en `pago`
-- devolver `pago_id`, `cita_id`, fecha, concepto y monto
-
-Si no hay deudas pendientes, también se informa por pantalla.
-
-## 5. Módulo Médico
-
-### 5.1 Registrar Evolución de Cita
-
-Pide:
-
-- `cita_id`
-- nota de evolución
-
-Además de guardar la nota, el sistema deja la cita como `ASISTIDA`.
-
-Si la nota cambia, el trigger de auditoría guarda:
-
-- valor anterior
-- valor nuevo
-- usuario editor
-- fecha
-
-### 5.2 Finalizar Tratamiento
-
-Pide:
-
-- `tratamiento_id`
-
-Al cambiar el estado a `FINALIZADO`, el trigger calcula:
-
-```text
-sesiones_estimadas / sesiones_asistidas * 100
 ```
 
-## 6. Módulo de Consultas
+## Módulo Administrativo
 
-### 6.1 Lista de Pacientes
+**Registrar paciente** — pide nombre, fecha de nacimiento, contacto y si fue referido. Si fue referido, muestra la lista para elegir el ID del referidor.
 
-Muestra:
+**Abrir tratamiento** — asocia un paciente con un médico, diagnóstico y número de sesiones estimadas. El tratamiento queda en `ACTIVO`.
 
-- ID
-- nombre
-- fecha de nacimiento
-- contacto
-- referido por o `Directo`
+**Agendar cita** — pide tratamiento, fecha/hora, monto, tipo de atención y profesional. Si el paciente tiene dos o más citas anteriores sin pagar, PostgreSQL lanza un error y la app lo muestra como regla de negocio violada.
 
-### 6.2 Deudas de Paciente
+**Registrar pago** — pide el `tratamiento_id` e invoca `fn_aplicar_pago()`, que salda la cita pendiente más antigua. Devuelve pago ID, cita ID, fecha, concepto y monto. Si no hay deudas, muestra el mensaje correspondiente sin cerrarse.
 
-Muestra las citas no pagadas del paciente con:
+## Módulo Médico
 
-- cita
-- tratamiento
-- fecha
-- tipo
-- monto
-- diagnóstico
+**Registrar evolución** — pide `cita_id` y nota. Marca la cita como `ASISTIDA` y dispara el trigger de auditoría si ya había una nota anterior.
 
-### 6.3 Historial Clínico
+**Finalizar tratamiento** — cambia el estado a `FINALIZADO`. El trigger calcula la eficacia (`sesiones_estimadas / sesiones_asistidas * 100`) y la guarda en la base.
 
-Muestra por tratamiento:
+## Módulo de Consultas
 
-- estado
-- diagnóstico
-- médico
-- sesiones estimadas
-- eficacia si ya existe
+- **Lista de pacientes** — muestra ID, nombre, contacto y referidor.
+- **Deudas de paciente** — citas sin pagar con fecha, tipo, monto y diagnóstico.
+- **Historial clínico** — por tratamiento y cita, incluyendo nota de evolución y eficacia si ya fue calculada.
+- **Tratamientos por paciente** — resumen con estado, citas totales, asistidas y eficacia.
 
-Y por cada cita:
+## Módulo Gerencial
 
-- fecha
-- tipo
-- estado de pago
-- estado de asistencia
-- nota de evolución
+- **Organigrama** — jerarquía completa de empleados usando `v_organigrama`.
+- **Adherencia** — promedio de días entre citas por paciente y clasificación ALTA / MEDIA / BAJA.
+- **Cadena de referidos** — árbol de paciente → referido usando `v_cadena_referidos`.
+- **Eficacia** — resumen de tratamientos con sesiones estimadas, asistidas y porcentaje de eficacia.
 
-### 6.4 Tratamientos por Paciente
+## Manejo de errores
 
-Resume:
-
-- estado del tratamiento
-- diagnóstico
-- médico
-- sesiones estimadas
-- número de citas
-- citas asistidas
-- eficacia
-
-## 7. Módulo Gerencial
-
-### 7.1 Organigrama
-
-Usa `v_organigrama` y muestra la jerarquía completa de senior → junior → técnico/fisioterapeuta.
-
-### 7.2 Reporte de Adherencia
-
-Usa `v_reporte_adherencia` y muestra:
-
-- paciente
-- promedio de días entre citas
-- clasificación `ALTA`, `MEDIA` o `BAJA`
-
-### 7.3 Cadena de Referidos
-
-Usa `v_cadena_referidos` y muestra el linaje entre pacientes.
-
-### 7.4 Reporte de Eficacia
-
-Muestra por tratamiento:
-
-- paciente
-- médico
-- sesiones estimadas
-- sesiones asistidas
-- eficacia
-- estado
-
-## 8. Manejo de errores
-
-La aplicación captura excepciones de PostgreSQL con `psycopg2` y muestra mensajes entendibles.
-
-Casos importantes:
-
-- morosidad al agendar
-- intento de pago sin deudas
-- tratamiento o cita inexistente
-
-## 9. Flujo recomendado para la demo
-
-1. Registrar paciente nuevo.
-2. Consultar lista de pacientes para verificar el referido.
-3. Intentar agendar una cita bloqueada por morosidad.
-4. Registrar un pago FIFO.
-5. Registrar evolución de una cita.
-6. Finalizar tratamiento.
-7. Mostrar organigrama, referidos y adherencia.
+La app captura excepciones de PostgreSQL y las traduce a mensajes entendibles. Nunca colapsa por un error de negocio — muestra el mensaje y vuelve al menú.
