@@ -2,7 +2,7 @@
 
 ## Vista general
 
-El modelo está organizado alrededor del paciente, sus tratamientos, las citas ejecutadas dentro de cada tratamiento, los pagos registrados y la auditoría clínica.
+El centro del modelo es el paciente. Desde ahí salen los tratamientos, las citas, los pagos y la auditoría.
 
 ```mermaid
 erDiagram
@@ -78,23 +78,25 @@ erDiagram
 
 ## Decisiones de modelado
 
-- `paciente` se autorrelaciona para soportar la cadena de referidos pedida en el parcial.
+- `paciente` se autorrelaciona para manejar la cadena de referidos.
 - `empleado` se autorrelaciona para representar el árbol de mando.
-- `pago` es una entidad independiente para cumplir la rúbrica de modelado y dejar trazabilidad financiera.
-- `cita.estado_asistencia` separa el hecho de haber asistido del hecho de haber pagado.
-- `tratamiento.eficacia_porcentaje` se calcula por trigger al finalizar el tratamiento.
+- `pago` quedó como entidad aparte para no reducir todo a un `pagado = true/false`.
+- `estado_asistencia` quedó separado de `pagado` porque no significan lo mismo.
+- `eficacia_porcentaje` se guarda en `tratamiento` porque se calcula al cierre.
 
 ## Cardinalidades principales
 
-- Un **médico senior** puede supervisar varios juniors.
-- Un **médico junior** puede supervisar varios técnicos o fisioterapeutas.
-- Un **paciente** puede tener varios tratamientos.
-- Un **tratamiento** puede tener varias citas.
-- Un **tratamiento** puede registrar varios pagos.
-- Una **cita** puede generar múltiples registros de auditoría si la nota se edita varias veces.
+- Un médico senior puede supervisar varios juniors.
+- Un médico junior puede supervisar varios técnicos o fisioterapeutas.
+- Un paciente puede tener varios tratamientos.
+- Un tratamiento puede tener varias citas.
+- Un tratamiento puede tener varios pagos.
+- Una cita puede tener varios registros en auditoría si la nota se edita más de una vez.
 
-## Reglas importantes reflejadas en el modelo
+## Reglas reflejadas en el modelo
 
-- Máximo una deuda pendiente efectiva antes de agendar una nueva cita; con dos anteriores sin pagar, el trigger bloquea.
-- La eficacia solo considera citas `ASISTIDA`.
-- Cada edición de evolución deja rastro de auditoría con `OLD` y `NEW`.
+- Si un paciente ya tiene dos citas anteriores sin pagar, no se le puede agendar otra.
+- La eficacia solo cuenta citas `ASISTIDA`.
+- Cada cambio en la evolución deja rastro con valor anterior, valor nuevo, usuario y fecha.
+
+En resumen, el diagrama se pensó para cubrir lo que pide el enunciado sin dejar pagos, jerarquía o referidos resueltos “a medias”.

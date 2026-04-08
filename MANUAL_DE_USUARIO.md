@@ -2,7 +2,7 @@
 
 ## 1. Objetivo
 
-La aplicación permite operar la base de datos de la clínica OrthoConnect desde consola, cumpliendo los menús exigidos en el parcial:
+La aplicación permite manejar la base de datos de OrthoConnect desde consola. Se dejó organizada en los cuatro módulos que pide el parcial:
 
 - Administrativo
 - Médico
@@ -11,22 +11,26 @@ La aplicación permite operar la base de datos de la clínica OrthoConnect desde
 
 ## 2. Inicio
 
-Con la base ya cargada:
+Con la base ya cargada, correr:
 
 ```bash
 PYTHONPATH=. python -m src.main
 ```
 
-Al iniciar se muestran dos modos:
+Al iniciar aparecen dos modos:
 
 - `1. Demo`
 - `2. PostgreSQL`
 
-Para la sustentación del parcial se debe usar **PostgreSQL**.
+Para presentar el parcial se debe usar **PostgreSQL**.
 
-Si quieren que los IDs y resultados coincidan con el ejemplo del profesor, primero ejecuten `make reset-db`.
+Si quieren que los IDs y los resultados coincidan con el ejemplo del profesor, conviene ejecutar antes:
 
-Luego se solicita el nombre del operador. Ese nombre se usa como `application_name` y queda registrado en auditoría y pagos.
+```bash
+make reset-db
+```
+
+Después se pide el nombre del operador. Ese nombre se usa como `application_name` y queda guardado en auditoría y pagos.
 
 ## 3. Menú principal
 
@@ -42,7 +46,7 @@ Opciones:
 
 ### 4.1 Registrar Nuevo Paciente
 
-Solicita:
+Pide:
 
 - nombre completo
 - fecha de nacimiento
@@ -53,18 +57,18 @@ Si fue referido, muestra la lista de pacientes para escoger el `paciente_id` del
 
 ### 4.2 Abrir Nuevo Tratamiento
 
-Solicita:
+Pide:
 
 - paciente
 - médico tratante
 - diagnóstico
 - sesiones estimadas
 
-El tratamiento queda en estado `ACTIVO`.
+El tratamiento se crea en estado `ACTIVO`.
 
 ### 4.3 Agendar Cita
 
-Solicita:
+Pide:
 
 - tratamiento
 - fecha y hora
@@ -77,33 +81,33 @@ La cita queda con:
 - `pagado = FALSE`
 - `estado_asistencia = 'PROGRAMADA'`
 
-Si el paciente ya tiene dos o más citas anteriores pendientes, PostgreSQL lanza una excepción y la aplicación la muestra como regla de negocio violada.
+Si el paciente ya tiene dos o más citas anteriores pendientes, PostgreSQL lanza la excepción y la aplicación la muestra sin cerrarse.
 
 ### 4.4 Registrar Pago
 
-Solicita:
+Pide:
 
 - `tratamiento_id`
 
-La aplicación invoca `fn_aplicar_pago()`:
+La aplicación usa `fn_aplicar_pago()` para:
 
-- busca la cita pendiente más antigua
-- la marca como pagada
-- crea el registro en `pago`
-- devuelve `pago_id`, `cita_id`, fecha, concepto y monto
+- buscar la cita pendiente más antigua
+- marcarla como pagada
+- crear el registro en `pago`
+- devolver `pago_id`, `cita_id`, fecha, concepto y monto
 
-Si no hay deudas pendientes, el mensaje se muestra sin romper la aplicación.
+Si no hay deudas pendientes, también se informa por pantalla.
 
 ## 5. Módulo Médico
 
 ### 5.1 Registrar Evolución de Cita
 
-Solicita:
+Pide:
 
 - `cita_id`
 - nota de evolución
 
-Además de guardar la nota, el sistema marca la cita como `ASISTIDA`.
+Además de guardar la nota, el sistema deja la cita como `ASISTIDA`.
 
 Si la nota cambia, el trigger de auditoría guarda:
 
@@ -114,11 +118,11 @@ Si la nota cambia, el trigger de auditoría guarda:
 
 ### 5.2 Finalizar Tratamiento
 
-Solicita:
+Pide:
 
 - `tratamiento_id`
 
-Al cambiar el estado a `FINALIZADO`, el trigger calcula la eficacia usando:
+Al cambiar el estado a `FINALIZADO`, el trigger calcula:
 
 ```text
 sesiones_estimadas / sesiones_asistidas * 100
@@ -134,11 +138,11 @@ Muestra:
 - nombre
 - fecha de nacimiento
 - contacto
-- referido por / `Directo`
+- referido por o `Directo`
 
 ### 6.2 Deudas de Paciente
 
-Muestra las citas no pagadas del paciente, con:
+Muestra las citas no pagadas del paciente con:
 
 - cita
 - tratamiento
@@ -181,11 +185,11 @@ Resume:
 
 ### 7.1 Organigrama
 
-Consume `v_organigrama` y muestra la jerarquía completa de senior → junior → técnico/fisioterapeuta.
+Usa `v_organigrama` y muestra la jerarquía completa de senior → junior → técnico/fisioterapeuta.
 
 ### 7.2 Reporte de Adherencia
 
-Consume `v_reporte_adherencia` y muestra:
+Usa `v_reporte_adherencia` y muestra:
 
 - paciente
 - promedio de días entre citas
@@ -193,7 +197,7 @@ Consume `v_reporte_adherencia` y muestra:
 
 ### 7.3 Cadena de Referidos
 
-Consume `v_cadena_referidos` y muestra el linaje de confianza entre pacientes.
+Usa `v_cadena_referidos` y muestra el linaje entre pacientes.
 
 ### 7.4 Reporte de Eficacia
 
@@ -208,7 +212,7 @@ Muestra por tratamiento:
 
 ## 8. Manejo de errores
 
-La aplicación captura excepciones de PostgreSQL con `psycopg2` y las traduce a mensajes entendibles.
+La aplicación captura excepciones de PostgreSQL con `psycopg2` y muestra mensajes entendibles.
 
 Casos importantes:
 

@@ -11,5 +11,8 @@ local/
 *.sql.bak
 *.sql~
 
-# Documentos solo locales
+# Documentos de trabajo locales (no son entregables del parcial)
 Parcial2.docx
+AUDITORIA_PARCIAL_2.md
+GUIA_SQL.md
+INSTALACION_RAPIDA.md

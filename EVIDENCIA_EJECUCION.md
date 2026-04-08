@@ -8,27 +8,27 @@
 - Cliente: `psycopg2`
 - Entrada principal: CLI en [src/main.py](/Users/thom/projects/orthoconnect/src/main.py)
 
-## Evidencia automática
+## Pruebas automáticas
 
-Se ejecutó la suite:
+Se corrió:
 
 ```bash
 PYTHONPATH=. python -m unittest tests.test_e2e_demo tests.test_e2e_cli_smoke tests.test_e2e_postgres_optional -v
 ```
 
-Resultado:
+Resultado general:
 
 - `15` pruebas ejecutadas
 - `15` OK
 - `0` skipped
 
-En el entorno final de validación también quedó verificada la GUI opcional: `customtkinter` está instalado, la ventana de login abre y las pantallas demo navegan sin errores.
+También revisamos la GUI opcional. `customtkinter` está instalado, el login abre y las pantallas demo cargan sin error.
 
-## Casos validados sobre PostgreSQL real
+## Casos probados en PostgreSQL real
 
 ### 1. Registro de paciente
 
-Flujo ejecutado desde CLI:
+Lo que se probó:
 
 - modo `PostgreSQL`
 - operador `cli_demo`
@@ -36,39 +36,39 @@ Flujo ejecutado desde CLI:
 - registro de paciente `Juan Perez`
 - referido por paciente `7`
 
-Resultado observado:
+Resultado:
 
 ```text
 ✓  PACIENTE REGISTRADO  ·  ID: 9  ·  Juan Perez
 ```
 
-## 2. Morosidad extrema
+### 2. Morosidad extrema
 
-Flujo ejecutado:
+Lo que se probó:
 
 - agendar cita para `tratamiento_id = 1`
 - fecha `2026-03-25 10:00`
 
-Resultado observado:
+Resultado:
 
 ```text
 REGLA DE NEGOCIO VIOLADA: BLOQUEO: El paciente tiene 2 citas anteriores pendientes. Debe ponerse al día.
 ```
 
-Elemento técnico validado:
+Con esto se comprobó:
 
 - trigger `trg_morosidad_agenda`
 - función `fn_check_morosidad()`
 
-## 3. Pago FIFO
+### 3. Pago FIFO
 
-Flujo ejecutado:
+Lo que se probó:
 
 - agendar cita para `tratamiento_id = 7`
 - fecha `2026-03-25 10:00`
 - registrar pago sobre `tratamiento_id = 7`
 
-Resultado observado en CLI:
+Resultado en CLI:
 
 ```text
 ID Pago:   13
@@ -78,78 +78,78 @@ Concepto:  Sesión Control
 Monto:     $50000.00
 ```
 
-Validación directa en base:
+Validación en base:
 
 ```text
 PAGOS [(13, 7, 14, 'verificador'), ...]
 ```
 
-Elemento técnico validado:
+Con esto se comprobó:
 
 - función `fn_aplicar_pago()`
 - tabla `pago`
-- lógica FIFO sobre la cita pendiente más antigua
+- pago FIFO sobre la deuda más antigua
 
-## 4. Evolución clínica y auditoría
+### 4. Evolución clínica y auditoría
 
-Flujo ejecutado:
+Lo que se probó:
 
 - registrar evolución sobre `cita_id = 3`
 - nota: `Paciente completa sesion sin dolor.`
 
-Resultado observado:
+Resultado:
 
 ```text
 ✓  Evolución registrada
 Auditoría guardada en base de datos.
 ```
 
-Validación directa en base:
+Validación en base:
 
 ```text
 AUDIT [(3, None, 'Paciente completa sesion sin dolor.', 'cli_demo'), ...]
 ```
 
-Elemento técnico validado:
+Con esto se comprobó:
 
 - actualización de `nota_evolucion`
 - cambio automático de `estado_asistencia` a `ASISTIDA`
 - trigger `trg_auditoria_evolucion`
 - función `fn_auditoria_evolucion()`
 
-## 5. Cierre de tratamiento y eficacia
+### 5. Cierre de tratamiento y eficacia
 
-Flujo ejecutado:
+Lo que se probó:
 
 - finalizar `tratamiento_id = 1`
 
-Resultado observado:
+Resultado:
 
 ```text
 ✓  Tratamiento #1 cerrado
 Eficacia calculada: 333.33%
 ```
 
-Validación directa en base:
+Validación en base:
 
 ```text
 TRAT [(1, 'FINALIZADO', Decimal('333.33')), ...]
 ```
 
-Explicación del cálculo:
+Cálculo:
 
 - sesiones estimadas: `10`
 - sesiones asistidas reales: `3`
 - eficacia: `10 / 3 * 100 = 333.33%`
 
-Elemento técnico validado:
+Con esto se comprobó:
 
 - trigger `trg_eficacia_tratamiento`
 - función `fn_calcular_eficacia_tratamiento()`
 
-## 6. Organigrama por CTE recursiva
+### 6. Organigrama por CTE recursiva
 
-Salida observada:
+Salida:
 
 ```text
 └─ Dr. Gregory House  Ortopedia Senior
@@ -165,14 +165,14 @@ Salida observada:
     └─ Ft. Ben Warren  Terapia Ocupacional
 ```
 
-Elemento técnico validado:
+Con esto se comprobó:
 
 - vista `v_organigrama`
 - CTE recursiva senior → junior → técnico/fisioterapeuta
 
-## 7. Cadena de referidos por CTE recursiva
+### 7. Cadena de referidos por CTE recursiva
 
-Salida observada:
+Salida:
 
 ```text
 Carlos Ruiz  (Directo)
@@ -186,14 +186,14 @@ Juan Perez  (Directo)
     └─ Pedro Gomez  via Juan Perez → Maria Lopez
 ```
 
-Elemento técnico validado:
+Con esto se comprobó:
 
 - vista `v_cadena_referidos`
 - CTE recursiva paciente → paciente
 
-## 8. Adherencia con window functions
+### 8. Adherencia con window functions
 
-Salida observada:
+Salida:
 
 ```text
 Juan Perez    10.0   MEDIA (Seguimiento)
@@ -201,14 +201,14 @@ Carlos Ruiz   26.3   BAJA (Riesgo de Abandono)
 Ana Beltrán   34.5   BAJA (Riesgo de Abandono)
 ```
 
-Elemento técnico validado:
+Con esto se comprobó:
 
 - vista `v_adherencia_detalle` con `LAG`
 - vista `v_reporte_adherencia` con promedio y clasificación
 
-## 9. Validación automática específica sobre PostgreSQL
+## Validación automática específica sobre PostgreSQL
 
-Las pruebas reales en [tests/test_e2e_postgres_optional.py](/Users/thom/projects/orthoconnect/tests/test_e2e_postgres_optional.py) cubren:
+Además, las pruebas reales en [tests/test_e2e_postgres_optional.py](/Users/thom/projects/orthoconnect/tests/test_e2e_postgres_optional.py) cubren:
 
 - bloqueo por morosidad al intentar una tercera deuda anterior
 - pago FIFO con inserción en `pago`
@@ -216,9 +216,9 @@ Las pruebas reales en [tests/test_e2e_postgres_optional.py](/Users/thom/projects
 - cálculo de eficacia usando solo citas `ASISTIDA`
 - consumo de vistas y reportes gerenciales
 
-## Conclusión
+## Cierre
 
-La solución quedó validada contra los entregables del parcial:
+En resumen, se validó lo siguiente del parcial:
 
 - esquema SQL completo
 - datos de prueba
@@ -226,10 +226,10 @@ La solución quedó validada contra los entregables del parcial:
 - funciones
 - vistas analíticas
 - CLI conectada con PostgreSQL
-- manejo elegante de errores
-- documentación coherente con el modelo real
+- manejo de errores
+- documentación del modelo
 
-Además, el `seed.sql` quedó ajustado para reproducir lo más fielmente posible el bloque de ejemplo del profesor:
+Además, el `seed.sql` se ajustó para que el ejemplo del profesor salga lo más parecido posible:
 
 - nombres con tildes y jerarquías esperadas
 - `tratamiento_id = 1`, `3` y `7` alineados con el ejemplo
