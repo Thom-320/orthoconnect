@@ -24,6 +24,8 @@ Al iniciar se muestran dos modos:
 
 Para la sustentación del parcial se debe usar **PostgreSQL**.
 
+Si quieren que los IDs y resultados coincidan con el ejemplo del profesor, primero ejecuten `make reset-db`.
+
 Luego se solicita el nombre del operador. Ese nombre se usa como `application_name` y queda registrado en auditoría y pagos.
 
 ## 3. Menú principal

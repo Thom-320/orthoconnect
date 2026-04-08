@@ -57,7 +57,7 @@ class PostgresRepoSmokeTest(unittest.TestCase):
                     cur,
                     1,
                     datetime(2026, 3, 25, 10, 0),
-                    "Sesion control",
+                    "Sesión Control",
                     Decimal("50000"),
                     3,
                 )
@@ -118,7 +118,7 @@ class PostgresRepoSmokeTest(unittest.TestCase):
             repo_pg.actualizar_evolucion(cur, 3, "Paciente completa sesion sin dolor.")
             row = repo_pg.finalizar_tratamiento(cur, 1)
             self.assertEqual(row[1], "FINALIZADO")
-            self.assertEqual(str(row[2]), "500.00")
+            self.assertEqual(str(row[2]), "333.33")
 
 
 if __name__ == "__main__":

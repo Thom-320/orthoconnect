@@ -50,48 +50,63 @@ class DemoData:
             {"empleado_id": 1, "nombre_completo": "Dr. Gregory House", "rol": "MEDICO_SENIOR", "especialidad": "Ortopedia Senior", "supervisor_id": None},
             {"empleado_id": 2, "nombre_completo": "Dr. Shaun Murphy", "rol": "MEDICO_JUNIOR", "especialidad": "Ortopedia Junior", "supervisor_id": 1},
             {"empleado_id": 3, "nombre_completo": "Lic. Wilson", "rol": "FISIOTERAPEUTA", "especialidad": "Fisioterapia", "supervisor_id": 2},
-            {"empleado_id": 4, "nombre_completo": "Dra. Meredith Grey", "rol": "MEDICO_SENIOR", "especialidad": "Cirugia Ortopedica", "supervisor_id": None},
+            {"empleado_id": 4, "nombre_completo": "Dra. Meredith Grey", "rol": "MEDICO_SENIOR", "especialidad": "Cirugía Ortopédica", "supervisor_id": None},
             {"empleado_id": 5, "nombre_completo": "Dra. Lexie Grey", "rol": "MEDICO_JUNIOR", "especialidad": "Ortopedia General", "supervisor_id": 4},
-            {"empleado_id": 6, "nombre_completo": "Dr. Derek Shepherd", "rol": "MEDICO_SENIOR", "especialidad": "Neuro-Ortopedia", "supervisor_id": None},
-            {"empleado_id": 7, "nombre_completo": "Ft. Jo Wilson", "rol": "FISIOTERAPEUTA", "especialidad": "Fisioterapia Deportiva", "supervisor_id": 6},
+            {"empleado_id": 6, "nombre_completo": "Dr. George O'Malley", "rol": "MEDICO_JUNIOR", "especialidad": "Traumatología", "supervisor_id": 4},
+            {"empleado_id": 7, "nombre_completo": "Dr. Derek Shepherd", "rol": "MEDICO_SENIOR", "especialidad": "Neuro-Ortopedia", "supervisor_id": None},
+            {"empleado_id": 8, "nombre_completo": "Dr. Jackson Avery", "rol": "MEDICO_JUNIOR", "especialidad": "Rehabilitación", "supervisor_id": 7},
+            {"empleado_id": 9, "nombre_completo": "Ft. Jo Wilson", "rol": "FISIOTERAPEUTA", "especialidad": "Fisioterapia Deportiva", "supervisor_id": 8},
+            {"empleado_id": 10, "nombre_completo": "Ft. April Kepner", "rol": "FISIOTERAPEUTA", "especialidad": "Recuperación Funcional", "supervisor_id": 8},
+            {"empleado_id": 11, "nombre_completo": "Ft. Ben Warren", "rol": "TECNICO", "especialidad": "Terapia Ocupacional", "supervisor_id": 8},
         ]
         self.pacientes: list[dict[str, Any]] = [
             {"paciente_id": 1, "nombre_completo": "Juan Perez", "fecha_nacimiento": date(1990, 5, 15), "contacto": "555-0101", "referido_por_paciente_id": None},
             {"paciente_id": 2, "nombre_completo": "Maria Lopez", "fecha_nacimiento": date(1985, 10, 20), "contacto": "555-0202", "referido_por_paciente_id": 1},
             {"paciente_id": 3, "nombre_completo": "Pedro Gomez", "fecha_nacimiento": date(1992, 1, 10), "contacto": "555-0303", "referido_por_paciente_id": 2},
             {"paciente_id": 4, "nombre_completo": "Carlos Ruiz", "fecha_nacimiento": date(1978, 3, 12), "contacto": "3001112233", "referido_por_paciente_id": None},
+            {"paciente_id": 5, "nombre_completo": "Ana Beltrán", "fecha_nacimiento": date(1995, 7, 25), "contacto": "3004445566", "referido_por_paciente_id": 4},
+            {"paciente_id": 6, "nombre_completo": "Luis Díaz", "fecha_nacimiento": date(2000, 11, 2), "contacto": "3159998877", "referido_por_paciente_id": 5},
+            {"paciente_id": 7, "nombre_completo": "Sofía Vergara", "fecha_nacimiento": date(1982, 5, 30), "contacto": "3203332211", "referido_por_paciente_id": 4},
+            {"paciente_id": 8, "nombre_completo": "James Rodriguez", "fecha_nacimiento": date(1991, 7, 12), "contacto": "3104443322", "referido_por_paciente_id": 6},
         ]
         self.tratamientos: list[dict[str, Any]] = [
-            {"tratamiento_id": 1, "paciente_id": 1, "medico_empleado_id": 1, "diagnostico": "Fractura de femur", "sesiones_estimadas": 10, "estado": "ACTIVO", "eficacia_porcentaje": None},
-            {"tratamiento_id": 2, "paciente_id": 2, "medico_empleado_id": 4, "diagnostico": "Reconstruccion de LCA", "sesiones_estimadas": 12, "estado": "FINALIZADO", "eficacia_porcentaje": Decimal("400.00")},
-            {"tratamiento_id": 3, "paciente_id": 4, "medico_empleado_id": 6, "diagnostico": "Fractura", "sesiones_estimadas": 3, "estado": "ACTIVO", "eficacia_porcentaje": None},
+            {"tratamiento_id": 1, "paciente_id": 1, "medico_empleado_id": 1, "diagnostico": "Fractura de fémur", "sesiones_estimadas": 10, "estado": "ACTIVO", "eficacia_porcentaje": None},
+            {"tratamiento_id": 2, "paciente_id": 2, "medico_empleado_id": 2, "diagnostico": "Tendinitis rotuliana", "sesiones_estimadas": 5, "estado": "ACTIVO", "eficacia_porcentaje": None},
+            {"tratamiento_id": 3, "paciente_id": 4, "medico_empleado_id": 4, "diagnostico": "Reconstrucción de LCA", "sesiones_estimadas": 12, "estado": "FINALIZADO", "eficacia_porcentaje": Decimal("400.00")},
+            {"tratamiento_id": 4, "paciente_id": 5, "medico_empleado_id": 5, "diagnostico": "Esguince", "sesiones_estimadas": 6, "estado": "ACTIVO", "eficacia_porcentaje": None},
+            {"tratamiento_id": 5, "paciente_id": 3, "medico_empleado_id": 6, "diagnostico": "Luxación de hombro", "sesiones_estimadas": 4, "estado": "ACTIVO", "eficacia_porcentaje": None},
+            {"tratamiento_id": 6, "paciente_id": 6, "medico_empleado_id": 8, "diagnostico": "Recuperación funcional", "sesiones_estimadas": 5, "estado": "ACTIVO", "eficacia_porcentaje": None},
+            {"tratamiento_id": 7, "paciente_id": 4, "medico_empleado_id": 7, "diagnostico": "Fractura", "sesiones_estimadas": 3, "estado": "ACTIVO", "eficacia_porcentaje": None},
         ]
         self.citas: list[dict[str, Any]] = [
             {"cita_id": 1, "tratamiento_id": 1, "fecha_hora": datetime(2026, 3, 1, 8, 0), "tipo_atencion": "Consulta inicial", "monto": Decimal("80000"), "pagado": False, "estado_asistencia": "PROGRAMADA", "nota_evolucion": None, "profesional_empleado_id": 1},
-            {"cita_id": 2, "tratamiento_id": 1, "fecha_hora": datetime(2026, 3, 5, 9, 0), "tipo_atencion": "Fisioterapia 1", "monto": Decimal("50000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": "Buena evolucion", "profesional_empleado_id": 3},
-            {"cita_id": 3, "tratamiento_id": 1, "fecha_hora": datetime(2026, 3, 22, 0, 0), "tipo_atencion": "Sesion control", "monto": Decimal("50000"), "pagado": False, "estado_asistencia": "PROGRAMADA", "nota_evolucion": None, "profesional_empleado_id": 3},
-            {"cita_id": 4, "tratamiento_id": 2, "fecha_hora": datetime(2026, 1, 5, 8, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("60000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": "Paciente inicia fase de movilidad pasiva", "profesional_empleado_id": 7},
-            {"cita_id": 5, "tratamiento_id": 2, "fecha_hora": datetime(2026, 1, 8, 8, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("60000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": "Se observa edema leve", "profesional_empleado_id": 7},
-            {"cita_id": 6, "tratamiento_id": 2, "fecha_hora": datetime(2026, 1, 12, 8, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("60000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 7},
-            {"cita_id": 7, "tratamiento_id": 3, "fecha_hora": datetime(2026, 1, 10, 10, 0), "tipo_atencion": "Consulta", "monto": Decimal("70000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 6},
-            {"cita_id": 8, "tratamiento_id": 3, "fecha_hora": datetime(2026, 2, 15, 10, 0), "tipo_atencion": "Control", "monto": Decimal("50000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 6},
-            {"cita_id": 9, "tratamiento_id": 3, "fecha_hora": datetime(2026, 3, 20, 10, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("50000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 7},
+            {"cita_id": 2, "tratamiento_id": 1, "fecha_hora": datetime(2026, 3, 5, 9, 0), "tipo_atencion": "Fisioterapia 1", "monto": Decimal("50000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": "Buena evolución", "profesional_empleado_id": 3},
+            {"cita_id": 3, "tratamiento_id": 1, "fecha_hora": datetime(2026, 3, 21, 8, 0), "tipo_atencion": "Sesión Control", "monto": Decimal("50000"), "pagado": False, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 3},
+            {"cita_id": 4, "tratamiento_id": 3, "fecha_hora": datetime(2026, 1, 5, 10, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("60000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": "Paciente inicia fase de movilidad pasiva. Dolor 4/10.", "profesional_empleado_id": 9},
+            {"cita_id": 5, "tratamiento_id": 3, "fecha_hora": datetime(2026, 1, 8, 10, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("60000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": "Se observa edema leve. Se recomienda hielo local.", "profesional_empleado_id": 9},
+            {"cita_id": 6, "tratamiento_id": 3, "fecha_hora": datetime(2026, 1, 12, 10, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("60000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 9},
+            {"cita_id": 7, "tratamiento_id": 4, "fecha_hora": datetime(2026, 1, 1, 9, 0), "tipo_atencion": "Inicial", "monto": Decimal("40000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 5},
+            {"cita_id": 8, "tratamiento_id": 4, "fecha_hora": datetime(2026, 2, 4, 21, 0), "tipo_atencion": "Control", "monto": Decimal("40000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 5},
+            {"cita_id": 9, "tratamiento_id": 2, "fecha_hora": datetime(2026, 2, 18, 8, 0), "tipo_atencion": "Valoración", "monto": Decimal("45000"), "pagado": False, "estado_asistencia": "PROGRAMADA", "nota_evolucion": None, "profesional_empleado_id": 2},
+            {"cita_id": 10, "tratamiento_id": 5, "fecha_hora": datetime(2026, 2, 2, 11, 0), "tipo_atencion": "Valoración", "monto": Decimal("30000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 6},
+            {"cita_id": 11, "tratamiento_id": 6, "fecha_hora": datetime(2026, 2, 20, 7, 30), "tipo_atencion": "Terapia física", "monto": Decimal("45000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 8},
         ]
         self.pagos: list[dict[str, Any]] = [
             {"pago_id": 1, "tratamiento_id": 1, "cita_id_saldada": 2, "fecha_pago": datetime(2026, 3, 5, 9, 30), "monto": Decimal("50000"), "usuario_registro": "seed"},
-            {"pago_id": 2, "tratamiento_id": 2, "cita_id_saldada": 4, "fecha_pago": datetime(2026, 1, 5, 8, 30), "monto": Decimal("60000"), "usuario_registro": "seed"},
-            {"pago_id": 3, "tratamiento_id": 2, "cita_id_saldada": 5, "fecha_pago": datetime(2026, 1, 8, 8, 30), "monto": Decimal("60000"), "usuario_registro": "seed"},
-            {"pago_id": 4, "tratamiento_id": 2, "cita_id_saldada": 6, "fecha_pago": datetime(2026, 1, 12, 8, 30), "monto": Decimal("60000"), "usuario_registro": "seed"},
-            {"pago_id": 5, "tratamiento_id": 3, "cita_id_saldada": 7, "fecha_pago": datetime(2026, 1, 10, 10, 30), "monto": Decimal("70000"), "usuario_registro": "seed"},
-            {"pago_id": 6, "tratamiento_id": 3, "cita_id_saldada": 8, "fecha_pago": datetime(2026, 2, 15, 10, 30), "monto": Decimal("50000"), "usuario_registro": "seed"},
-            {"pago_id": 7, "tratamiento_id": 3, "cita_id_saldada": 9, "fecha_pago": datetime(2026, 3, 20, 10, 30), "monto": Decimal("50000"), "usuario_registro": "seed"},
+            {"pago_id": 2, "tratamiento_id": 3, "cita_id_saldada": 4, "fecha_pago": datetime(2026, 1, 5, 8, 45), "monto": Decimal("60000"), "usuario_registro": "seed"},
+            {"pago_id": 3, "tratamiento_id": 3, "cita_id_saldada": 5, "fecha_pago": datetime(2026, 1, 8, 8, 45), "monto": Decimal("60000"), "usuario_registro": "seed"},
+            {"pago_id": 4, "tratamiento_id": 3, "cita_id_saldada": 6, "fecha_pago": datetime(2026, 1, 12, 10, 45), "monto": Decimal("60000"), "usuario_registro": "seed"},
+            {"pago_id": 5, "tratamiento_id": 4, "cita_id_saldada": 7, "fecha_pago": datetime(2026, 1, 1, 9, 30), "monto": Decimal("40000"), "usuario_registro": "seed"},
+            {"pago_id": 6, "tratamiento_id": 4, "cita_id_saldada": 8, "fecha_pago": datetime(2026, 2, 4, 21, 30), "monto": Decimal("40000"), "usuario_registro": "seed"},
+            {"pago_id": 7, "tratamiento_id": 5, "cita_id_saldada": 10, "fecha_pago": datetime(2026, 2, 2, 11, 30), "monto": Decimal("30000"), "usuario_registro": "seed"},
+            {"pago_id": 8, "tratamiento_id": 6, "cita_id_saldada": 11, "fecha_pago": datetime(2026, 2, 20, 8, 0), "monto": Decimal("45000"), "usuario_registro": "seed"},
         ]
         self.auditoria_evolucion: list[dict[str, Any]] = []
         self.next_ids = {
-            "paciente": 5,
-            "tratamiento": 4,
-            "cita": 10,
-            "pago": 8,
+            "paciente": 9,
+            "tratamiento": 8,
+            "cita": 12,
+            "pago": 12,
             "auditoria": 1,
         }
 
@@ -209,7 +224,12 @@ def insertar_cita(
     pendientes = 0
     for c in cur.data.citas:
         t2 = _get_tratamiento(cur, c["tratamiento_id"])
-        if t2 and t2["paciente_id"] == paciente_id and not c["pagado"]:
+        if (
+            t2
+            and t2["paciente_id"] == paciente_id
+            and not c["pagado"]
+            and c["fecha_hora"] < fecha_hora
+        ):
             pendientes += 1
     if pendientes >= 2:
         raise ValueError(

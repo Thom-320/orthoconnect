@@ -24,6 +24,12 @@ Este archivo explica el contrato SQL que usa el proyecto y el orden recomendado 
 - mostrar referidos
 - mostrar adherencia
 
+Importante:
+
+- No hay un dataset oficial adjunto en el parcial.
+- Los datos de `seed.sql` son sinteticos y fueron armados para cubrir los escenarios del enunciado y reproducir los ejemplos del profesor.
+- Algunos nombres y flujos salen casi directos del bloque de ejemplo del documento del parcial; otros registros adicionales se inventaron para completar casos de prueba.
+
 ## 2. Orden de carga
 
 Siempre ejecutar en este orden:
@@ -34,6 +40,12 @@ psql -d orthoconnect -f sql/seed.sql
 ```
 
 Si cambian el esquema, vuelvan a cargar ambos archivos.
+
+Para la sustentacion y para reproducir el ejemplo textual del profesor, conviene resetear la base justo antes de la demo:
+
+```bash
+make reset-db
+```
 
 ## 3. Tablas principales
 
@@ -155,7 +167,7 @@ Regla:
 ### `v_adherencia_detalle`
 
 - usa `LAG`
-- calcula dias entre citas asistidas
+- calcula dias entre citas del paciente en orden cronologico
 
 ### `v_reporte_adherencia`
 

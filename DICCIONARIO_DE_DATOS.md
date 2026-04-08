@@ -156,7 +156,7 @@ Campos:
 
 ### `v_adherencia_detalle`
 
-Window function con `LAG` para medir el intervalo entre citas asistidas por paciente.
+Window function con `LAG` para medir el intervalo entre citas del paciente en orden cronológico.
 
 Campos:
 

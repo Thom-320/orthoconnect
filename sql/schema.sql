@@ -336,7 +336,7 @@ SELECT
 FROM cadena;
 
 CREATE OR REPLACE VIEW v_adherencia_detalle AS
-WITH citas_asistidas AS (
+WITH citas_paciente AS (
     SELECT
         p.paciente_id,
         p.nombre_completo,
@@ -350,7 +350,6 @@ WITH citas_asistidas AS (
     FROM cita c
     JOIN tratamiento t ON t.tratamiento_id = c.tratamiento_id
     JOIN paciente p ON p.paciente_id = t.paciente_id
-    WHERE c.estado_asistencia = 'ASISTIDA'
 )
 SELECT
     paciente_id,
@@ -360,7 +359,7 @@ SELECT
     fecha_hora,
     fecha_previa,
     ROUND(EXTRACT(EPOCH FROM (fecha_hora - fecha_previa)) / 86400.0, 1) AS dias_desde_cita_previa
-FROM citas_asistidas
+FROM citas_paciente
 WHERE fecha_previa IS NOT NULL;
 
 CREATE OR REPLACE VIEW v_reporte_adherencia AS

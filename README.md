@@ -23,6 +23,10 @@ El sistema modela la clínica **OrthoConnect** para rehabilitación de pacientes
 - Auditoría de cambios sobre la evolución clínica
 - Reportes analíticos con CTE recursivas y window functions
 
+Los datos de `sql/seed.sql` son datos de prueba sinteticos. Se derivan del enunciado y de los ejemplos incluidos en `Parcial2.docx`; no provienen de un dataset oficial entregado por el curso.
+
+El `seed.sql` fue ajustado para reproducir lo mas fielmente posible el bloque de ejemplo del profesor. Para obtener exactamente esos IDs y resultados en la demo, primero se debe ejecutar `make reset-db`.
+
 ## Requisitos
 
 - Python 3.11+
@@ -157,5 +161,6 @@ Cobertura actual:
 - [DIAGRAMA_ER.md](/Users/thom/projects/orthoconnect/DIAGRAMA_ER.md)
 - [MANUAL_DE_USUARIO.md](/Users/thom/projects/orthoconnect/MANUAL_DE_USUARIO.md)
 - [EVIDENCIA_EJECUCION.md](/Users/thom/projects/orthoconnect/EVIDENCIA_EJECUCION.md)
+- [AUDITORIA_PARCIAL_2.md](/Users/thom/projects/orthoconnect/AUDITORIA_PARCIAL_2.md)
 - [GUIA_SQL.md](/Users/thom/projects/orthoconnect/GUIA_SQL.md)
 - [INSTALACION_RAPIDA.md](/Users/thom/projects/orthoconnect/INSTALACION_RAPIDA.md)

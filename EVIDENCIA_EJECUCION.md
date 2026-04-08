@@ -19,10 +19,10 @@ PYTHONPATH=. python -m unittest tests.test_e2e_demo tests.test_e2e_cli_smoke tes
 Resultado:
 
 - `15` pruebas ejecutadas
-- `14` OK
-- `1` skipped
+- `15` OK
+- `0` skipped
 
-La prueba omitida corresponde a la GUI opcional cuando `customtkinter` no está instalado. No afecta el entregable oficial del parcial, que se defiende con CLI + PostgreSQL.
+En el entorno final de validación también quedó verificada la GUI opcional: `customtkinter` está instalado, la ventana de login abre y las pantallas demo navegan sin errores.
 
 ## Casos validados sobre PostgreSQL real
 
@@ -64,22 +64,24 @@ Elemento técnico validado:
 
 Flujo ejecutado:
 
-- registrar pago sobre `tratamiento_id = 1`
+- agendar cita para `tratamiento_id = 7`
+- fecha `2026-03-25 10:00`
+- registrar pago sobre `tratamiento_id = 7`
 
 Resultado observado en CLI:
 
 ```text
 ID Pago:   13
-ID Cita:   1
-Fecha:     2026-03-01 08:00:00
-Concepto:  Consulta inicial
-Monto:     $80000.00
+ID Cita:   14
+Fecha:     2026-03-25 10:00:00
+Concepto:  Sesión Control
+Monto:     $50000.00
 ```
 
 Validación directa en base:
 
 ```text
-PAGOS [(13, 1, 1, 'cli_demo'), ...]
+PAGOS [(13, 7, 14, 'verificador'), ...]
 ```
 
 Elemento técnico validado:
@@ -125,20 +127,20 @@ Resultado observado:
 
 ```text
 ✓  Tratamiento #1 cerrado
-Eficacia calculada: 500.00%
+Eficacia calculada: 333.33%
 ```
 
 Validación directa en base:
 
 ```text
-TRAT [(1, 'FINALIZADO', Decimal('500.00')), ...]
+TRAT [(1, 'FINALIZADO', Decimal('333.33')), ...]
 ```
 
 Explicación del cálculo:
 
 - sesiones estimadas: `10`
-- sesiones asistidas reales: `2`
-- eficacia: `10 / 2 * 100 = 500.00%`
+- sesiones asistidas reales: `3`
+- eficacia: `10 / 3 * 100 = 333.33%`
 
 Elemento técnico validado:
 
@@ -153,13 +155,13 @@ Salida observada:
 └─ Dr. Gregory House  Ortopedia Senior
   └─ Dr. Shaun Murphy  Ortopedia Junior
     └─ Lic. Wilson  Fisioterapia
-└─ Dra. Meredith Grey  Cirugia Ortopedica
+└─ Dra. Meredith Grey  Cirugía Ortopédica
   └─ Dra. Lexie Grey  Ortopedia General
-  └─ Dr. George O'Malley  Traumatologia
+  └─ Dr. George O'Malley  Traumatología
 └─ Dr. Derek Shepherd  Neuro-Ortopedia
-  └─ Dr. Jackson Avery  Rehabilitacion
+  └─ Dr. Jackson Avery  Rehabilitación
     └─ Ft. Jo Wilson  Fisioterapia Deportiva
-    └─ Ft. April Kepner  Recuperacion Funcional
+    └─ Ft. April Kepner  Recuperación Funcional
     └─ Ft. Ben Warren  Terapia Ocupacional
 ```
 
@@ -174,10 +176,11 @@ Salida observada:
 
 ```text
 Carlos Ruiz  (Directo)
-  └─ Ana Beltran  via Carlos Ruiz
-    └─ Luis Diaz  via Carlos Ruiz → Ana Beltran
-      └─ James Rodriguez  via Carlos Ruiz → Ana Beltran → Luis Diaz
-  └─ Sofia Vergara  via Carlos Ruiz
+  └─ Ana Beltrán  via Carlos Ruiz
+    └─ Luis Díaz  via Carlos Ruiz → Ana Beltrán
+      └─ James Rodriguez  via Carlos Ruiz → Ana Beltrán → Luis Díaz
+  └─ Sofía Vergara  via Carlos Ruiz
+    └─ Juan Perez  via Carlos Ruiz → Sofía Vergara
 Juan Perez  (Directo)
   └─ Maria Lopez  via Juan Perez
     └─ Pedro Gomez  via Juan Perez → Maria Lopez
@@ -193,11 +196,9 @@ Elemento técnico validado:
 Salida observada:
 
 ```text
-Ana Beltran   40.0   BAJA (Riesgo de Abandono)
-Carlos Ruiz   34.5   BAJA (Riesgo de Abandono)
-Juan Perez    17.0   BAJA (Riesgo de Abandono)
-Luis Diaz      7.0   ALTA (Ideal)
-Maria Lopez    3.5   ALTA (Ideal)
+Juan Perez    10.0   MEDIA (Seguimiento)
+Carlos Ruiz   26.3   BAJA (Riesgo de Abandono)
+Ana Beltrán   34.5   BAJA (Riesgo de Abandono)
 ```
 
 Elemento técnico validado:
@@ -227,3 +228,11 @@ La solución quedó validada contra los entregables del parcial:
 - CLI conectada con PostgreSQL
 - manejo elegante de errores
 - documentación coherente con el modelo real
+
+Además, el `seed.sql` quedó ajustado para reproducir lo más fielmente posible el bloque de ejemplo del profesor:
+
+- nombres con tildes y jerarquías esperadas
+- `tratamiento_id = 1`, `3` y `7` alineados con el ejemplo
+- pago exitoso sobre `cita_id = 14`
+- cierre de tratamiento con `333.33%`
+- adherencia final con `Juan 10.0`, `Carlos 26.3` y `Ana 34.5`
