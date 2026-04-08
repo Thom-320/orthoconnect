@@ -5,10 +5,12 @@ __pycache__/
 venv/
 *.egg-info/
 
-# SQL local / backups (no subir esquemas al remoto)
+# Backups / archivos locales auxiliares
+local/
+
+# SQL local (no subir esquemas/datos si se manejan fuera del repo)
 sql/*.sql
 sql/**/*.sql
-local/
 
 *.sql.bak
 *.sql~

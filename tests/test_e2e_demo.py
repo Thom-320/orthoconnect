@@ -55,7 +55,7 @@ class DemoRepoGuiPathsTest(unittest.TestCase):
         with self.conn.cursor() as cur:
             row = self.repo.aplicar_pago(cur, 1)
             self.assertIsNotNone(row)
-            self.assertEqual(len(row), 4)
+            self.assertEqual(len(row), 5)
 
     def test_evolucion_y_finalizar(self) -> None:
         with self.conn.cursor() as cur:
@@ -84,8 +84,12 @@ class DemoRepoGuiPathsTest(unittest.TestCase):
 class GuiRepoRoutingTest(unittest.TestCase):
     def test_effective_repo_for_connection(self) -> None:
         from src import repo as repo_pg
-        from src.gui_main import effective_repo_for_connection
         from src import repo_demo
+
+        try:
+            from src.gui_main import effective_repo_for_connection
+        except ModuleNotFoundError as exc:
+            self.skipTest(f"GUI opcional no disponible en este entorno: {exc}")
 
         conn = repo_demo.DemoConnection()
         self.assertIs(effective_repo_for_connection(conn, repo_pg), repo_demo)

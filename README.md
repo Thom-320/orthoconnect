@@ -1,170 +1,161 @@
-# OrthoConnect — Cliente Python
+# OrthoConnect
 
-Aplicación **OrthoConnect v1.0**: menús de consola (**Rich** + **psycopg2**) e interfaz gráfica (**customtkinter**) para operar sobre la base clínica.
+Entrega del **Proyecto Integrador / Parcial 2** de Ingeniería de Datos.
 
-Este repositorio es el **cliente** (interfaz de usuario e integración). La **definición de la base de datos** (tablas, triggers, vistas, datos iniciales) la construyen **otros integrantes del equipo**; los archivos `.sql` se guardan **solo en cada máquina** dentro de `sql/` y **no se suben a GitHub** (ver `.gitignore`).
+El repositorio contiene los entregables pedidos en el enunciado:
 
----
+- `sql/schema.sql`: esquema, funciones, triggers y vistas
+- `sql/seed.sql`: datos de prueba
+- `src/main.py`: interfaz de línea de comando con `psycopg2`
+- `src/repo.py`: acceso a datos SQL parametrizado
+- documentación funcional y técnica
+- pruebas automáticas sobre modo demo y PostgreSQL
 
-## Cómo repartimos el trabajo
+## Alcance de la solución
 
-| Quién | Qué hace |
-|--------|-----------|
-| **Thomas (este repo)** | Menú de usuario en Python, conexión con `psycopg2`, manejo de errores de negocio, modo **Demo** (sin base) para probar la app antes de que el SQL esté listo, GUI opcional, tests. |
-| **Ospina, Sopa y quien modele la BD** | Estructura de **tablas**, **triggers**, **vistas**, funciones en PostgreSQL, y **datos semilla** (`schema.sql`, `seed.sql`). Deben entregar esos scripts al equipo (Drive, zip, otro repo, etc.) para que cada uno los copie en `sql/` en local. |
+El sistema modela la clínica **OrthoConnect** para rehabilitación de pacientes con lesiones óseas:
 
-La frase *“el menú debería poder hacerse antes de tener la base bien diseñada”* se cumple con el **modo Demo**: corre la app con datos en memoria, sin PostgreSQL. La **integración real** (triggers, `fn_aplicar_pago`, vistas) solo funciona cuando PostgreSQL tiene **su** SQL aplicado.
-
----
-
-## Qué tienen que hacer ustedes (equipo de base de datos)
-
-1. **Entregar** los scripts acordados con el enunciado del curso (mínimo: tablas alineadas con lo que usa `src/repo.py`, triggers de morosidad / eficacia / auditoría si aplica, función de pago, vistas de informes).
-2. **Documentar** brevemente nombres de tablas, función `fn_aplicar_pago` y vistas que expongan, para que no haya desajuste con el cliente.
-3. Los demás copian esos archivos a **`sql/schema.sql`** y **`sql/seed.sql`** (o los nombres que acuerden) en su PC; esos archivos **no van al remoto** por diseño.
-
-Si el esquema cambia, avisen para actualizar `src/repo.py` o el contrato de columnas.
-
----
+- Pacientes con cadena de referidos paciente → paciente
+- Estructura jerárquica de empleados: médicos senior, médicos junior, técnicos y fisioterapeutas
+- Tratamientos con sesiones estimadas y eficacia calculada al cierre
+- Citas con estado de pago, estado de asistencia y nota de evolución
+- Pagos FIFO sobre la cita pendiente más antigua del tratamiento
+- Auditoría de cambios sobre la evolución clínica
+- Reportes analíticos con CTE recursivas y window functions
 
 ## Requisitos
 
-- **Python 3.11+** (recomendado; probado también con 3.14).
-- **PostgreSQL** solo si van a usar el modo base real (no hace falta para Demo).
-- **macOS:** si la GUI falla por Tk, instalar soporte gráfico, por ejemplo:
-  ```bash
-  brew install python-tk@3.14
-  ```
-  (ajustar la versión a la de su Python).
+- Python 3.11+
+- PostgreSQL 12+
+- Dependencias de `requirements.txt`
 
----
-
-## Tutorial desde cero
-
-### 1. Clonar el repositorio
-
-```bash
-git clone https://github.com/Thom-320/orthoconnect.git
-cd orthoconnect
-```
-
-### 2. Crear entorno virtual e instalar dependencias
+Instalación:
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install --upgrade pip
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Variables de entorno (solo para PostgreSQL)
+O más rápido:
+
+```bash
+make setup
+```
+
+## Configuración de PostgreSQL
+
+Crear un archivo `.env` a partir de `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-Editen `.env` con su host, puerto, nombre de base, usuario y contraseña. En Mac con Homebrew a veces **dejan `PGUSER` vacío** para usar el usuario del sistema.
+Variables usadas:
 
-**Importante:** el archivo `.env` no se sube a Git (está en `.gitignore`).
+- `PGHOST`
+- `PGPORT`
+- `PGDATABASE`
+- `PGUSER`
+- `PGPASSWORD`
 
-### 4. Scripts SQL (local, no en GitHub)
-
-1. Obtengan `schema.sql` y `seed.sql` (u otros nombres) del equipo de base de datos.
-2. Cópienlos en la carpeta **`sql/`** del proyecto, por ejemplo:
-   - `sql/schema.sql`
-   - `sql/seed.sql`
-
-Esos `.sql` **no se commitean**; cada quien los tiene en su disco.
-
-### 5. Crear la base y cargar datos (solo modo PostgreSQL)
+## Cargar la base de datos
 
 ```bash
-createdb orthoconnect    # o el nombre que pusieron en PGDATABASE
+createdb orthoconnect
 psql -d orthoconnect -f sql/schema.sql
 psql -d orthoconnect -f sql/seed.sql
 ```
 
-(Ajusten usuario/host si `psql` lo requiere, por ejemplo `-U su_usuario -h localhost`.)
-
-### 6. Ejecutar la aplicación
-
-Desde la **raíz** del proyecto, con el venv activado:
+Atajo recomendado:
 
 ```bash
-export PYTHONPATH=.
-python run.py
+make reset-db
 ```
 
-- Sin argumentos: pregunta si quieren **CLI** o **GUI**.
-- Atajos:
-  ```bash
-  PYTHONPATH=. python run.py --cli
-  PYTHONPATH=. python run.py --gui
-  ```
-- Equivalente directo:
-  ```bash
-  PYTHONPATH=. python -m src.main    # solo CLI
-  PYTHONPATH=. python -m src.gui_main # solo GUI
-  ```
+## Ejecutar la aplicación
 
-### 7. Elegir modo al iniciar
+CLI directa:
 
-- **CLI:** al arrancar, `1` = **Demo** (sin PostgreSQL, datos en memoria), `2` = **PostgreSQL** (necesita `.env` + SQL cargado).
-- **GUI:** en el login, segmento **Demo (sin BD)** o **PostgreSQL**, luego nombre del operador e **Ingresar**.
+```bash
+PYTHONPATH=. python -m src.main
+```
 
-El nombre del operador se usa como `application_name` en PostgreSQL (auditoría).
+Lanzador:
 
-### 8. Probar que el código pasa tests (opcional)
+```bash
+PYTHONPATH=. python run.py
+```
+
+La entrega está pensada para defenderse con **CLI + PostgreSQL**. La GUI queda como componente opcional.
+
+## Menús implementados
+
+### Módulo Administrativo
+
+- Registrar nuevo paciente
+- Abrir nuevo tratamiento
+- Agendar cita
+- Registrar pago
+
+### Módulo Médico
+
+- Registrar evolución de cita
+- Finalizar tratamiento
+
+### Módulo de Consultas
+
+- Lista de pacientes
+- Deudas de paciente
+- Historial clínico
+- Tratamientos por paciente
+
+### Módulo Gerencial
+
+- Organigrama
+- Reporte de adherencia
+- Cadena de referidos
+- Reporte de eficacia
+
+## Reglas de negocio implementadas
+
+- **Morosidad extrema:** un trigger bloquea agendar una nueva cita si el paciente ya tiene dos o más citas anteriores pendientes.
+- **Eficacia al cierre:** un trigger calcula `sesiones_estimadas / sesiones_asistidas * 100` cuando el tratamiento pasa a `FINALIZADO`.
+- **Auditoría de evolución:** cada cambio de `nota_evolucion` guarda valor anterior, valor nuevo, usuario y fecha.
+- **Pago FIFO:** `fn_aplicar_pago()` siempre salda la cita pendiente más antigua del tratamiento.
+
+## Vistas analíticas
+
+- `v_organigrama`: CTE recursiva de jerarquía de empleados
+- `v_cadena_referidos`: CTE recursiva de cadena de referidos
+- `v_adherencia_detalle`: intervalos entre citas usando `LAG`
+- `v_reporte_adherencia`: promedio de días y clasificación `ALTA / MEDIA / BAJA`
+
+## Pruebas
+
+Ejecutar la suite:
 
 ```bash
 PYTHONPATH=. python -m unittest discover -s tests -v
 ```
 
-- Los tests de Demo no requieren base.
-- Los que pegan a PostgreSQL **saltan** si no hay conexión o si definen:
-  ```bash
-  export ORTHCONNECT_SKIP_PG_TESTS=1
-  ```
+Con `make`:
 
----
-
-## Estructura útil del proyecto
-
-```
-orthoconnect/
-├── run.py              # Lanzador CLI / GUI
-├── .env.example        # Plantilla de conexión
-├── requirements.txt
-├── sql/                # Aquí van schema.sql y seed.sql SOLO en local
-├── src/
-│   ├── main.py         # CLI (Rich)
-│   ├── gui_main.py     # GUI (customtkinter)
-│   ├── db.py           # Conexión PostgreSQL
-│   ├── repo.py         # Consultas y comandos SQL parametrizados
-│   ├── repo_demo.py    # Misma API en memoria (modo Demo)
-│   └── db_errors.py    # Mensajes claros para reglas de negocio
-├── tests/              # Pruebas automáticas
-└── frontend/           # Mock HTML (referencia visual, no conectado a la BD)
+```bash
+make test
 ```
 
----
+Cobertura actual:
 
-## Problemas frecuentes
+- flujos del repositorio demo
+- smoke test de CLI
+- validaciones reales sobre PostgreSQL para morosidad, pagos, auditoría, eficacia y vistas
 
-| Síntoma | Qué revisar |
-|---------|-------------|
-| `ModuleNotFoundError: psycopg2` | `pip install -r requirements.txt` dentro del venv activado. |
-| No conecta a PostgreSQL | `.env`, servicio Postgres arriba, BD creada, SQL aplicado. |
-| `DemoCursor` / errores raros en GUI en Demo | Usar **Demo** con datos en memoria; no mezclar conexión Demo con SQL crudo en el mismo flujo (el código ya enruta a `repo_demo` en Demo). |
-| GUI no abre en Mac | Instalar `python-tk` acorde a su versión de Python. |
-| No ven `schema.sql` al clonar | Es normal: deben **copiarlo** desde quien tenga el SQL del curso. |
+## Archivos de apoyo
 
----
-
-## Enlace del repositorio
-
-**https://github.com/Thom-320/orthoconnect**
-
----
-
-*Última actualización del README alineada con el reparto acordado: menú y cliente Python en este repo; esquema, triggers y datos en manos del equipo de base de datos, entregados fuera del remoto como archivos `.sql` locales.*
+- [DICCIONARIO_DE_DATOS.md](/Users/thom/projects/orthoconnect/DICCIONARIO_DE_DATOS.md)
+- [DIAGRAMA_ER.md](/Users/thom/projects/orthoconnect/DIAGRAMA_ER.md)
+- [MANUAL_DE_USUARIO.md](/Users/thom/projects/orthoconnect/MANUAL_DE_USUARIO.md)
+- [EVIDENCIA_EJECUCION.md](/Users/thom/projects/orthoconnect/EVIDENCIA_EJECUCION.md)
+- [GUIA_SQL.md](/Users/thom/projects/orthoconnect/GUIA_SQL.md)
+- [INSTALACION_RAPIDA.md](/Users/thom/projects/orthoconnect/INSTALACION_RAPIDA.md)

@@ -6,7 +6,6 @@ Ejecutar desde la raíz del proyecto: PYTHONPATH=. python -m src.main
 from __future__ import annotations
 
 import sys
-from collections import defaultdict
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from typing import Callable, Optional
@@ -311,10 +310,11 @@ def _admin_registrar_pago(conn) -> None:
         row = repo.aplicar_pago(cur, tid)
         if not row:
             raise ValueError("No se obtuvo resultado del pago.")
-        cita_id, fecha, concepto, monto_v = row
+        pago_id, cita_id, fecha, concepto, monto_v = row
         con.print(
             Panel(
                 f"[ok]✓  ¡PAGO PROCESADO EXITOSAMENTE![/ok]\n\n"
+                f"  [label]ID Pago:[/label]   [hi]{pago_id}[/hi]\n"
                 f"  [label]ID Cita:[/label]   [hi]{cita_id}[/hi]\n"
                 f"  [label]Fecha:[/label]     [hi]{fecha}[/hi]\n"
                 f"  [label]Concepto:[/label]  [hi]{concepto}[/hi]\n"
@@ -442,13 +442,14 @@ def modulo_consultas(conn) -> None:
                         continue
                     rows = repo.tratamientos_por_paciente(cur, pid)
                     for r in rows:
-                        t_id, est, diag, med, sest, efic, nc = r
+                        t_id, est, diag, med, sest, efic, citas_tot, citas_asist = r
                         badge = "[ok]FINALIZADO[/ok]" if est == "FINALIZADO" else "[warn]ACTIVO[/warn]"
                         con.print(f"\n  [hi]Tratamiento #{t_id}[/hi]  {badge}")
                         con.print(f"  [muted]Diagnóstico:[/muted] [label]{diag}[/label]")
                         con.print(f"  [muted]Médico:[/muted] {med}  "
                                   f"[muted]Estimadas:[/muted] {sest}  "
-                                  f"[muted]Citas:[/muted] {nc}")
+                                  f"[muted]Citas:[/muted] {citas_tot}  "
+                                  f"[muted]Asistidas:[/muted] {citas_asist}")
                         if efic is not None:
                             con.print(f"  [warn]Eficacia: {efic}%[/warn]")
         except psycopg2.Error as e:
@@ -461,7 +462,7 @@ def _mostrar_historial(rows: list[tuple]) -> None:
         return
     current_tid = None
     for r in rows:
-        tid, estado, diag, medico, ses_est, eficacia, cita_id, fecha, tipo, pagado, nota = r
+        tid, estado, diag, medico, ses_est, eficacia, cita_id, fecha, tipo, pagado, asistencia, nota = r
         if tid != current_tid:
             current_tid = tid
             badge = "[ok]FINALIZADO[/ok]" if estado == "FINALIZADO" else "[warn]ACTIVO[/warn]"
@@ -475,7 +476,10 @@ def _mostrar_historial(rows: list[tuple]) -> None:
             continue
         marca = "[paid][X][/paid]" if pagado else "[unpaid][P][/unpaid]"
         nota_s = str(nota) if nota else "[muted]—[/muted]"
-        con.print(f"  {marca}  [muted]{fecha}[/muted]  [label]{tipo}[/label]  {nota_s}")
+        con.print(
+            f"  {marca}  [muted]{fecha}[/muted]  [label]{tipo}[/label]  "
+            f"[muted]{asistencia}[/muted]  {nota_s}"
+        )
 
 
 # ── Módulo Gerencia ────────────────────────────────────────────────────────────
@@ -486,12 +490,13 @@ def modulo_gerencia(conn) -> None:
         con.print("  [muted]1.[/muted] Organigrama  [muted](CTE Recursiva)[/muted]")
         con.print("  [muted]2.[/muted] Reporte de Adherencia  [muted](Window Functions)[/muted]")
         con.print("  [muted]3.[/muted] Cadena de Referidos  [muted](CTE Recursiva)[/muted]")
-        con.print("  [muted]4.[/muted] Volver")
+        con.print("  [muted]4.[/muted] Reporte de Eficacia")
+        con.print("  [muted]5.[/muted] Volver")
         con.print()
-        op = ask_int("Acción", min_v=1, max_v=4)
+        op = ask_int("Acción", min_v=1, max_v=5)
         if op is None:
             continue
-        if op == 4:
+        if op == 5:
             return
         try:
             with conn.cursor() as cur:
@@ -504,33 +509,28 @@ def modulo_gerencia(conn) -> None:
                 elif op == 3:
                     rows = repo.cadena_referidos(cur)
                     _mostrar_referidos(rows)
+                elif op == 4:
+                    rows = repo.reporte_eficacia(cur)
+                    _mostrar_eficacia(rows)
         except psycopg2.Error as e:
             con.print(Panel(f"[err]{format_db_error(e)}[/err]", border_style="err"))
 
 
 def _mostrar_organigrama(rows: list[tuple]) -> None:
     section_header("ORGANIGRAMA", "Gerencia · CTE Recursiva")
-    by_sup: dict[Optional[int], list[tuple]] = defaultdict(list)
-    for eid, nom, esp, sup, rol in rows:
-        by_sup[sup].append((eid, nom, esp, rol))
-    for k in by_sup:
-        by_sup[k].sort(key=lambda x: x[1])
-
+    if not rows:
+        panel_info("Sin datos para el organigrama.")
+        return
     _ROLE_COLOR = {
         "MEDICO_SENIOR": "senior",
         "MEDICO_JUNIOR": "junior",
         "FISIOTERAPEUTA": "physio",
         "TECNICO": "tech",
     }
-
-    def walk(parent_id: Optional[int], nivel: int) -> None:
-        for eid, nom, esp, rol in by_sup.get(parent_id, []):
-            indent = "  " * nivel
-            rc = _ROLE_COLOR.get(rol, "muted")
-            con.print(f"  {indent}[{rc}]└─ {nom}[/{rc}]  [muted]{esp}[/muted]")
-            walk(eid, nivel + 1)
-
-    walk(None, 0)
+    for _eid, nom, esp, _sup, rol, nivel, _ruta in rows:
+        indent = "  " * int(nivel)
+        rc = _ROLE_COLOR.get(rol, "muted")
+        con.print(f"  {indent}[{rc}]└─ {nom}[/{rc}]  [muted]{esp}[/muted]")
 
 
 def _mostrar_adherencia(rows: list[tuple]) -> None:
@@ -568,6 +568,38 @@ def _mostrar_referidos(rows: list[tuple]) -> None:
             parts = cadena.split(" -> ")
             path = " [muted]→[/muted] ".join(parts[:-1])
             con.print(f"  {indent}[amber]└─[/amber] [hi]{nombre}[/hi]  [muted]via {path}[/muted]")
+
+
+def _mostrar_eficacia(rows: list[tuple]) -> None:
+    section_header("REPORTE DE EFICACIA", "Gerencia · Tratamientos")
+    if not rows:
+        panel_info("Sin tratamientos para mostrar.")
+        return
+    t = Table(
+        Column("Trat.", style="mono", width=6),
+        Column("Paciente", style="hi", min_width=18),
+        Column("Medico", style="muted", min_width=18),
+        Column("Est.", justify="right", style="mono", width=6),
+        Column("Asist.", justify="right", style="mono", width=6),
+        Column("Eficacia", justify="right", style="warn", width=10),
+        Column("Estado", min_width=12),
+        box=box.SIMPLE_HEAD, header_style="label",
+        show_edge=False, padding=(0, 1),
+    )
+    for tid, paciente, medico, _diag, estimadas, asistidas, eficacia, estado in rows:
+        estado_cell = f"[ok]{estado}[/ok]" if estado == "FINALIZADO" else f"[warn]{estado}[/warn]"
+        eficacia_cell = f"{eficacia}%" if eficacia is not None else "—"
+        t.add_row(
+            str(tid),
+            str(paciente),
+            str(medico),
+            str(estimadas),
+            str(asistidas),
+            eficacia_cell,
+            estado_cell,
+        )
+    con.print("  ", end="")
+    con.print(t)
 
 
 # ── Menú principal ─────────────────────────────────────────────────────────────

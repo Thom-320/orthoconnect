@@ -489,9 +489,10 @@ class PagosPage(BasePage):
             with self.app.conn.cursor() as cur:
                 row = self._get_repo().aplicar_pago(cur, tid)
             self.app.conn.commit()
-            cid, fecha, concepto, monto = row
+            pago_id, cid, fecha, concepto, monto = row
             txt = (
                 f"✓  ¡PAGO PROCESADO EXITOSAMENTE!\n\n"
+                f"   ID Pago:   {pago_id}\n"
                 f"   ID Cita:   {cid}\n"
                 f"   Fecha:     {fecha}\n"
                 f"   Concepto:  {concepto}\n"
@@ -650,20 +651,13 @@ class OrganigramaPage(BasePage):
         try:
             with self.app.conn.cursor() as cur:
                 rows = self._get_repo().organigrama_empleados(cur)
-            # build tree
-            from collections import defaultdict
-            by_sup: dict = defaultdict(list)
-            for eid, nom, esp, sup, rol in rows:
-                by_sup[sup].append((eid, nom, esp, sup, rol))
-
-            def walk(parent_id, nivel, tv_parent=""):
-                for eid, nom, esp, sup, rol in sorted(by_sup.get(parent_id, []), key=lambda x: x[1]):
-                    indent = "  " * nivel
-                    iid = self.tv.insert(tv_parent, "end",
-                                        values=(nivel, f"{indent}└─ {nom}", rol, esp, sup or "—"))
-                    walk(eid, nivel + 1, iid)
-
-            walk(None, 0)
+            for eid, nom, esp, sup, rol, nivel, _ruta in rows:
+                indent = "  " * int(nivel)
+                self.tv.insert(
+                    "",
+                    "end",
+                    values=(nivel, f"{indent}└─ {nom}", rol, esp, sup or "—"),
+                )
             # expand all
             def expand_all(item):
                 self.tv.item(item, open=True)

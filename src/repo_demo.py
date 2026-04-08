@@ -67,21 +67,31 @@ class DemoData:
             {"tratamiento_id": 3, "paciente_id": 4, "medico_empleado_id": 6, "diagnostico": "Fractura", "sesiones_estimadas": 3, "estado": "ACTIVO", "eficacia_porcentaje": None},
         ]
         self.citas: list[dict[str, Any]] = [
-            {"cita_id": 1, "tratamiento_id": 1, "fecha_hora": datetime(2026, 3, 1, 8, 0), "tipo_atencion": "Consulta inicial", "monto": Decimal("80000"), "pagado": False, "nota_evolucion": None, "profesional_empleado_id": 1},
-            {"cita_id": 2, "tratamiento_id": 1, "fecha_hora": datetime(2026, 3, 5, 9, 0), "tipo_atencion": "Fisioterapia 1", "monto": Decimal("50000"), "pagado": True, "nota_evolucion": "Buena evolucion", "profesional_empleado_id": 3},
-            {"cita_id": 3, "tratamiento_id": 1, "fecha_hora": datetime(2026, 3, 22, 0, 0), "tipo_atencion": "Sesion control", "monto": Decimal("50000"), "pagado": False, "nota_evolucion": None, "profesional_empleado_id": 3},
-            {"cita_id": 4, "tratamiento_id": 2, "fecha_hora": datetime(2026, 1, 5, 8, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("60000"), "pagado": True, "nota_evolucion": "Paciente inicia fase de movilidad pasiva", "profesional_empleado_id": 7},
-            {"cita_id": 5, "tratamiento_id": 2, "fecha_hora": datetime(2026, 1, 8, 8, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("60000"), "pagado": True, "nota_evolucion": "Se observa edema leve", "profesional_empleado_id": 7},
-            {"cita_id": 6, "tratamiento_id": 2, "fecha_hora": datetime(2026, 1, 12, 8, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("60000"), "pagado": True, "nota_evolucion": None, "profesional_empleado_id": 7},
-            {"cita_id": 7, "tratamiento_id": 3, "fecha_hora": datetime(2026, 1, 10, 10, 0), "tipo_atencion": "Consulta", "monto": Decimal("70000"), "pagado": True, "nota_evolucion": None, "profesional_empleado_id": 6},
-            {"cita_id": 8, "tratamiento_id": 3, "fecha_hora": datetime(2026, 2, 15, 10, 0), "tipo_atencion": "Control", "monto": Decimal("50000"), "pagado": True, "nota_evolucion": None, "profesional_empleado_id": 6},
-            {"cita_id": 9, "tratamiento_id": 3, "fecha_hora": datetime(2026, 3, 20, 10, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("50000"), "pagado": True, "nota_evolucion": None, "profesional_empleado_id": 7},
+            {"cita_id": 1, "tratamiento_id": 1, "fecha_hora": datetime(2026, 3, 1, 8, 0), "tipo_atencion": "Consulta inicial", "monto": Decimal("80000"), "pagado": False, "estado_asistencia": "PROGRAMADA", "nota_evolucion": None, "profesional_empleado_id": 1},
+            {"cita_id": 2, "tratamiento_id": 1, "fecha_hora": datetime(2026, 3, 5, 9, 0), "tipo_atencion": "Fisioterapia 1", "monto": Decimal("50000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": "Buena evolucion", "profesional_empleado_id": 3},
+            {"cita_id": 3, "tratamiento_id": 1, "fecha_hora": datetime(2026, 3, 22, 0, 0), "tipo_atencion": "Sesion control", "monto": Decimal("50000"), "pagado": False, "estado_asistencia": "PROGRAMADA", "nota_evolucion": None, "profesional_empleado_id": 3},
+            {"cita_id": 4, "tratamiento_id": 2, "fecha_hora": datetime(2026, 1, 5, 8, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("60000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": "Paciente inicia fase de movilidad pasiva", "profesional_empleado_id": 7},
+            {"cita_id": 5, "tratamiento_id": 2, "fecha_hora": datetime(2026, 1, 8, 8, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("60000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": "Se observa edema leve", "profesional_empleado_id": 7},
+            {"cita_id": 6, "tratamiento_id": 2, "fecha_hora": datetime(2026, 1, 12, 8, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("60000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 7},
+            {"cita_id": 7, "tratamiento_id": 3, "fecha_hora": datetime(2026, 1, 10, 10, 0), "tipo_atencion": "Consulta", "monto": Decimal("70000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 6},
+            {"cita_id": 8, "tratamiento_id": 3, "fecha_hora": datetime(2026, 2, 15, 10, 0), "tipo_atencion": "Control", "monto": Decimal("50000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 6},
+            {"cita_id": 9, "tratamiento_id": 3, "fecha_hora": datetime(2026, 3, 20, 10, 0), "tipo_atencion": "Fisioterapia", "monto": Decimal("50000"), "pagado": True, "estado_asistencia": "ASISTIDA", "nota_evolucion": None, "profesional_empleado_id": 7},
+        ]
+        self.pagos: list[dict[str, Any]] = [
+            {"pago_id": 1, "tratamiento_id": 1, "cita_id_saldada": 2, "fecha_pago": datetime(2026, 3, 5, 9, 30), "monto": Decimal("50000"), "usuario_registro": "seed"},
+            {"pago_id": 2, "tratamiento_id": 2, "cita_id_saldada": 4, "fecha_pago": datetime(2026, 1, 5, 8, 30), "monto": Decimal("60000"), "usuario_registro": "seed"},
+            {"pago_id": 3, "tratamiento_id": 2, "cita_id_saldada": 5, "fecha_pago": datetime(2026, 1, 8, 8, 30), "monto": Decimal("60000"), "usuario_registro": "seed"},
+            {"pago_id": 4, "tratamiento_id": 2, "cita_id_saldada": 6, "fecha_pago": datetime(2026, 1, 12, 8, 30), "monto": Decimal("60000"), "usuario_registro": "seed"},
+            {"pago_id": 5, "tratamiento_id": 3, "cita_id_saldada": 7, "fecha_pago": datetime(2026, 1, 10, 10, 30), "monto": Decimal("70000"), "usuario_registro": "seed"},
+            {"pago_id": 6, "tratamiento_id": 3, "cita_id_saldada": 8, "fecha_pago": datetime(2026, 2, 15, 10, 30), "monto": Decimal("50000"), "usuario_registro": "seed"},
+            {"pago_id": 7, "tratamiento_id": 3, "cita_id_saldada": 9, "fecha_pago": datetime(2026, 3, 20, 10, 30), "monto": Decimal("50000"), "usuario_registro": "seed"},
         ]
         self.auditoria_evolucion: list[dict[str, Any]] = []
         self.next_ids = {
             "paciente": 5,
             "tratamiento": 4,
             "cita": 10,
+            "pago": 8,
             "auditoria": 1,
         }
 
@@ -218,6 +228,7 @@ def insertar_cita(
             "tipo_atencion": tipo_atencion,
             "monto": monto,
             "pagado": False,
+            "estado_asistencia": "PROGRAMADA",
             "nota_evolucion": None,
             "profesional_empleado_id": profesional_empleado_id,
         }
@@ -232,7 +243,18 @@ def aplicar_pago(cur: DemoCursor, tratamiento_id: int) -> Optional[tuple[Any, ..
         raise ValueError("No hay citas pendientes de pago para este tratamiento.")
     cita = pendientes[0]
     cita["pagado"] = True
-    return (cita["cita_id"], cita["fecha_hora"], cita["tipo_atencion"], cita["monto"])
+    pago_id = _next_id(cur, "pago")
+    cur.data.pagos.append(
+        {
+            "pago_id": pago_id,
+            "tratamiento_id": tratamiento_id,
+            "cita_id_saldada": cita["cita_id"],
+            "fecha_pago": datetime.now(),
+            "monto": cita["monto"],
+            "usuario_registro": cur.data.app_user,
+        }
+    )
+    return (pago_id, cita["cita_id"], cita["fecha_hora"], cita["tipo_atencion"], cita["monto"])
 
 
 def cita_existe(cur: DemoCursor, cita_id: int) -> bool:
@@ -245,6 +267,7 @@ def actualizar_evolucion(cur: DemoCursor, cita_id: int, nota: str) -> int:
         return 0
     old_note = cita["nota_evolucion"]
     cita["nota_evolucion"] = nota
+    cita["estado_asistencia"] = "ASISTIDA"
     if old_note != nota:
         cur.data.auditoria_evolucion.append(
             {
@@ -264,7 +287,11 @@ def finalizar_tratamiento(cur: DemoCursor, tratamiento_id: int) -> tuple[Any, ..
     if not t:
         raise ValueError("Tratamiento no encontrado.")
     if t["estado"] != "FINALIZADO":
-        reales = sum(1 for c in cur.data.citas if c["tratamiento_id"] == tratamiento_id)
+        reales = sum(
+            1
+            for c in cur.data.citas
+            if c["tratamiento_id"] == tratamiento_id and c["estado_asistencia"] == "ASISTIDA"
+        )
         if reales == 0:
             t["eficacia_porcentaje"] = None
         else:
@@ -318,6 +345,7 @@ def historial_clinico(cur: DemoCursor, paciente_id: int) -> list[tuple[Any, ...]
                     None,
                     None,
                     None,
+                    None,
                 )
             )
             continue
@@ -334,6 +362,7 @@ def historial_clinico(cur: DemoCursor, paciente_id: int) -> list[tuple[Any, ...]
                     c["fecha_hora"],
                     c["tipo_atencion"],
                     c["pagado"],
+                    c["estado_asistencia"],
                     c["nota_evolucion"],
                 )
             )
@@ -356,6 +385,12 @@ def tratamientos_por_paciente(cur: DemoCursor, paciente_id: int) -> list[tuple[A
                 t["sesiones_estimadas"],
                 t["eficacia_porcentaje"],
                 n_citas,
+                sum(
+                    1
+                    for c in cur.data.citas
+                    if c["tratamiento_id"] == t["tratamiento_id"]
+                    and c["estado_asistencia"] == "ASISTIDA"
+                ),
             )
         )
     return rows
@@ -383,17 +418,51 @@ def listar_tratamientos(cur: DemoCursor) -> list[tuple[Any, ...]]:
 
 
 def organigrama_empleados(cur: DemoCursor) -> list[tuple[Any, ...]]:
-    rows = [
-        (e["empleado_id"], e["nombre_completo"], e["especialidad"], e["supervisor_id"], e["rol"])
-        for e in cur.data.empleados
-    ]
-    rows.sort(key=lambda x: x[0])
+    rows: list[tuple[Any, ...]] = []
+    children: dict[Optional[int], list[dict[str, Any]]] = {}
+    for e in cur.data.empleados:
+        children.setdefault(e["supervisor_id"], []).append(e)
+    for key in children:
+        children[key].sort(key=lambda x: (x["nombre_completo"], x["empleado_id"]))
+
+    def walk(parent_id: Optional[int], nivel: int, path: list[int]) -> None:
+        for e in children.get(parent_id, []):
+            ruta = ".".join([*(str(v).zfill(6) for v in path), str(e["empleado_id"]).zfill(6)])
+            rows.append(
+                (
+                    e["empleado_id"],
+                    e["nombre_completo"],
+                    e["especialidad"],
+                    e["supervisor_id"],
+                    e["rol"],
+                    nivel,
+                    ruta,
+                )
+            )
+            walk(e["empleado_id"], nivel + 1, path + [e["empleado_id"]])
+
+    seniors = [e for e in cur.data.empleados if e["rol"] == "MEDICO_SENIOR"]
+    for senior in sorted(seniors, key=lambda x: (x["nombre_completo"], x["empleado_id"])):
+        rows.append(
+            (
+                senior["empleado_id"],
+                senior["nombre_completo"],
+                senior["especialidad"],
+                senior["supervisor_id"],
+                senior["rol"],
+                0,
+                str(senior["empleado_id"]).zfill(6),
+            )
+        )
+        walk(senior["empleado_id"], 1, [senior["empleado_id"]])
     return rows
 
 
 def reporte_adherencia(cur: DemoCursor) -> list[tuple[Any, ...]]:
     by_paciente: dict[int, list[datetime]] = {}
     for c in cur.data.citas:
+        if c["estado_asistencia"] != "ASISTIDA":
+            continue
         t = _get_tratamiento(cur, c["tratamiento_id"])
         if not t:
             continue
@@ -437,4 +506,29 @@ def cadena_referidos(cur: DemoCursor) -> list[tuple[Any, ...]]:
             walk(p["paciente_id"], nivel + 1, next_path)
 
     walk(None, 0, [])
+    return rows
+
+
+def reporte_eficacia(cur: DemoCursor) -> list[tuple[Any, ...]]:
+    rows: list[tuple[Any, ...]] = []
+    for t in sorted(cur.data.tratamientos, key=lambda x: x["tratamiento_id"]):
+        paciente = _get_paciente(cur, t["paciente_id"])
+        medico = _get_empleado(cur, t["medico_empleado_id"])
+        asistidas = sum(
+            1
+            for c in cur.data.citas
+            if c["tratamiento_id"] == t["tratamiento_id"] and c["estado_asistencia"] == "ASISTIDA"
+        )
+        rows.append(
+            (
+                t["tratamiento_id"],
+                paciente["nombre_completo"] if paciente else "N/D",
+                medico["nombre_completo"] if medico else "N/D",
+                t["diagnostico"],
+                t["sesiones_estimadas"],
+                asistidas,
+                t["eficacia_porcentaje"],
+                t["estado"],
+            )
+        )
     return rows
