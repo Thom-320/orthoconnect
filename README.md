@@ -155,12 +155,11 @@ Cobertura actual:
 - smoke test de CLI
 - validaciones reales sobre PostgreSQL para morosidad, pagos, auditoría, eficacia y vistas
 
-## Archivos de apoyo
+## Documentación entregable
 
 - [DICCIONARIO_DE_DATOS.md](/Users/thom/projects/orthoconnect/DICCIONARIO_DE_DATOS.md)
 - [DIAGRAMA_ER.md](/Users/thom/projects/orthoconnect/DIAGRAMA_ER.md)
 - [MANUAL_DE_USUARIO.md](/Users/thom/projects/orthoconnect/MANUAL_DE_USUARIO.md)
 - [EVIDENCIA_EJECUCION.md](/Users/thom/projects/orthoconnect/EVIDENCIA_EJECUCION.md)
-- [AUDITORIA_PARCIAL_2.md](/Users/thom/projects/orthoconnect/AUDITORIA_PARCIAL_2.md)
-- [GUIA_SQL.md](/Users/thom/projects/orthoconnect/GUIA_SQL.md)
-- [INSTALACION_RAPIDA.md](/Users/thom/projects/orthoconnect/INSTALACION_RAPIDA.md)
+
+Con estos archivos se cubren los entregables pedidos en el parcial: esquema, datos de prueba, código fuente, evidencia, diagrama relacional y manual de usuario.

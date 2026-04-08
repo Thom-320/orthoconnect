@@ -10,3 +10,9 @@ local/
 
 *.sql.bak
 *.sql~
+
+# Documentos auxiliares solo locales
+AUDITORIA_PARCIAL_2.md
+GUIA_SQL.md
+INSTALACION_RAPIDA.md
+Parcial2.docx
