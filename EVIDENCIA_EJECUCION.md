@@ -1,74 +1,42 @@
 # Evidencia de Ejecución — OrthoConnect
 
-## Ambiente validado
+Validado el 7 de abril de 2026 sobre PostgreSQL con `psycopg2`.
 
-- Fecha de validación: 2026-04-07
-- Lenguaje: Python
-- Base de datos: PostgreSQL
-- Cliente: `psycopg2`
-- Entrada principal: CLI en [src/main.py](/Users/thom/projects/orthoconnect/src/main.py)
-
-## Pruebas automáticas
-
-Se corrió:
+Suite de pruebas:
 
 ```bash
 PYTHONPATH=. python -m unittest tests.test_e2e_demo tests.test_e2e_cli_smoke tests.test_e2e_postgres_optional -v
 ```
 
-Resultado general:
+Resultado: **15 pruebas, 15 OK, 0 skipped.**
 
-- `15` pruebas ejecutadas
-- `15` OK
-- `0` skipped
+---
 
-También revisamos la GUI opcional. `customtkinter` está instalado, el login abre y las pantallas demo cargan sin error.
+## 1. Registro de paciente referido
 
-## Casos probados en PostgreSQL real
-
-### 1. Registro de paciente
-
-Lo que se probó:
-
-- modo `PostgreSQL`
-- operador `cli_demo`
-- menú administrativo
-- registro de paciente `Juan Perez`
-- referido por paciente `7`
-
-Resultado:
+Se registró `Juan Perez` como referido por Sofía Vergara (paciente 7):
 
 ```text
 ✓  PACIENTE REGISTRADO  ·  ID: 9  ·  Juan Perez
 ```
 
-### 2. Morosidad extrema
+---
 
-Lo que se probó:
+## 2. Control de morosidad
 
-- agendar cita para `tratamiento_id = 1`
-- fecha `2026-03-25 10:00`
-
-Resultado:
+Intento de agendar en el tratamiento 1 (paciente con 2 citas sin pagar):
 
 ```text
 REGLA DE NEGOCIO VIOLADA: BLOQUEO: El paciente tiene 2 citas anteriores pendientes. Debe ponerse al día.
 ```
 
-Con esto se comprobó:
+La aplicación muestra el mensaje y vuelve al menú sin cerrarse.
 
-- trigger `trg_morosidad_agenda`
-- función `fn_check_morosidad()`
+---
 
-### 3. Pago FIFO
+## 3. Agendamiento y pago FIFO
 
-Lo que se probó:
-
-- agendar cita para `tratamiento_id = 7`
-- fecha `2026-03-25 10:00`
-- registrar pago sobre `tratamiento_id = 7`
-
-Resultado en CLI:
+Se agendó una cita para el tratamiento 7 y luego se registró el pago:
 
 ```text
 ID Pago:   13
@@ -78,78 +46,42 @@ Concepto:  Sesión Control
 Monto:     $50000.00
 ```
 
-Validación en base:
+Nota: el intento fallido del caso anterior consumió el ID 13 de la secuencia `cita` (las secuencias en PostgreSQL no hacen rollback), por eso la cita exitosa queda con el ID 14.
 
-```text
-PAGOS [(13, 7, 14, 'verificador'), ...]
-```
+---
 
-Con esto se comprobó:
+## 4. Evolución y auditoría
 
-- función `fn_aplicar_pago()`
-- tabla `pago`
-- pago FIFO sobre la deuda más antigua
-
-### 4. Evolución clínica y auditoría
-
-Lo que se probó:
-
-- registrar evolución sobre `cita_id = 3`
-- nota: `Paciente completa sesion sin dolor.`
-
-Resultado:
+Se registró evolución en la cita 3:
 
 ```text
 ✓  Evolución registrada
-Auditoría guardada en base de datos.
 ```
 
-Validación en base:
+Verificación directa en base:
 
 ```text
-AUDIT [(3, None, 'Paciente completa sesion sin dolor.', 'cli_demo'), ...]
+AUDIT [(3, None, 'Paciente completa sesion sin dolor.', 'cli_demo')]
 ```
 
-Con esto se comprobó:
+La cita quedó en `ASISTIDA` y el trigger `trg_auditoria_evolucion` guardó el valor anterior (NULL) y el nuevo.
 
-- actualización de `nota_evolucion`
-- cambio automático de `estado_asistencia` a `ASISTIDA`
-- trigger `trg_auditoria_evolucion`
-- función `fn_auditoria_evolucion()`
+---
 
-### 5. Cierre de tratamiento y eficacia
+## 5. Cierre de tratamiento y eficacia
 
-Lo que se probó:
-
-- finalizar `tratamiento_id = 1`
-
-Resultado:
+Se finalizó el tratamiento 1 (10 sesiones estimadas, 3 asistidas):
 
 ```text
 ✓  Tratamiento #1 cerrado
 Eficacia calculada: 333.33%
 ```
 
-Validación en base:
+Cálculo: `10 / 3 * 100 = 333.33%`. La eficacia puede superar el 100% si el paciente usó menos sesiones de las estimadas — el enunciado lo permite explícitamente.
 
-```text
-TRAT [(1, 'FINALIZADO', Decimal('333.33')), ...]
-```
+---
 
-Cálculo:
-
-- sesiones estimadas: `10`
-- sesiones asistidas reales: `3`
-- eficacia: `10 / 3 * 100 = 333.33%`
-
-Con esto se comprobó:
-
-- trigger `trg_eficacia_tratamiento`
-- función `fn_calcular_eficacia_tratamiento()`
-
-### 6. Organigrama por CTE recursiva
-
-Salida:
+## 6. Organigrama (CTE recursiva)
 
 ```text
 └─ Dr. Gregory House  Ortopedia Senior
@@ -165,14 +97,9 @@ Salida:
     └─ Ft. Ben Warren  Terapia Ocupacional
 ```
 
-Con esto se comprobó:
+---
 
-- vista `v_organigrama`
-- CTE recursiva senior → junior → técnico/fisioterapeuta
-
-### 7. Cadena de referidos por CTE recursiva
-
-Salida:
+## 7. Cadena de referidos (CTE recursiva)
 
 ```text
 Carlos Ruiz  (Directo)
@@ -186,53 +113,14 @@ Juan Perez  (Directo)
     └─ Pedro Gomez  via Juan Perez → Maria Lopez
 ```
 
-Con esto se comprobó:
+---
 
-- vista `v_cadena_referidos`
-- CTE recursiva paciente → paciente
+## 8. Adherencia (window functions)
 
-### 8. Adherencia con window functions
-
-Salida:
+Ejecutado después de insertar la cita del caso 3, para que el intervalo de Carlos Ruiz incluya esa fecha:
 
 ```text
 Juan Perez    10.0   MEDIA (Seguimiento)
 Carlos Ruiz   26.3   BAJA (Riesgo de Abandono)
 Ana Beltrán   34.5   BAJA (Riesgo de Abandono)
 ```
-
-Con esto se comprobó:
-
-- vista `v_adherencia_detalle` con `LAG`
-- vista `v_reporte_adherencia` con promedio y clasificación
-
-## Validación automática específica sobre PostgreSQL
-
-Además, las pruebas reales en [tests/test_e2e_postgres_optional.py](/Users/thom/projects/orthoconnect/tests/test_e2e_postgres_optional.py) cubren:
-
-- bloqueo por morosidad al intentar una tercera deuda anterior
-- pago FIFO con inserción en `pago`
-- auditoría al modificar evolución
-- cálculo de eficacia usando solo citas `ASISTIDA`
-- consumo de vistas y reportes gerenciales
-
-## Cierre
-
-En resumen, se validó lo siguiente del parcial:
-
-- esquema SQL completo
-- datos de prueba
-- triggers
-- funciones
-- vistas analíticas
-- CLI conectada con PostgreSQL
-- manejo de errores
-- documentación del modelo
-
-Además, el `seed.sql` se ajustó para que el ejemplo del profesor salga lo más parecido posible:
-
-- nombres con tildes y jerarquías esperadas
-- `tratamiento_id = 1`, `3` y `7` alineados con el ejemplo
-- pago exitoso sobre `cita_id = 14`
-- cierre de tratamiento con `333.33%`
-- adherencia final con `Juan 10.0`, `Carlos 26.3` y `Ana 34.5`
